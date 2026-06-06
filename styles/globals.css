@@ -9,13 +9,27 @@ html {
 }
 
 body {
-  background-color: #0A1128;
-  color: #F9F9FB;
+  background-color: #FAF9F6;
+  color: #0A1128;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Ensure headings inherit the serif stack globally */
 h1, h2, h3, h4, h5, h6 {
   font-family: 'Playfair Display', Georgia, serif;
+}
+
+/* ── Infinite horizontal marquee ── */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.marquee-track {
+  animation: marquee 34s linear infinite;
+  will-change: transform;
+}
+
+.marquee-track:hover {
+  animation-play-state: paused;
 }
