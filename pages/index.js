@@ -594,38 +594,43 @@ export default function Home() {
               {PORTFOLIO.map((item, i) => (
                 <div
                   key={i}
-                  className="group relative bg-[#FAF9F6] min-h-[310px] md:min-h-[330px] overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.025] hover:z-10 hover:shadow-[0_20px_52px_rgba(30,35,66,0.12)]"
+                  className={`group relative min-h-[240px] md:min-h-[256px] overflow-hidden cursor-pointer transition-all duration-300 hover:z-10 ${
+                    item.logo
+                      ? 'bg-[#FAF9F6] hover:scale-[1.02] hover:shadow-[0_20px_52px_rgba(30,35,66,0.13)]'
+                      : 'bg-[#0D1528]'
+                  }`}
                 >
+                  {/* Gold bottom sweep — on all cards */}
                   <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#F4B41A] z-10 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out pointer-events-none" />
 
                   {item.logo ? (
                     <>
                       {/* Logo card — default: centred logo on cream */}
-                      <div className="absolute inset-0 flex flex-col items-center justify-center p-8 transition-all duration-[400ms] ease-out group-hover:opacity-0 group-hover:scale-95">
+                      <div className="absolute inset-0 flex flex-col items-center justify-center p-8 transition-all duration-[380ms] ease-out group-hover:opacity-0 group-hover:scale-[0.94]">
                         <img
                           src={item.logo}
                           alt={item.name}
-                          className="max-h-[110px] max-w-[72%] object-contain"
+                          className="max-h-[88px] max-w-[65%] object-contain"
                         />
-                        <span className="mt-5 font-sans text-[9px] uppercase tracking-[0.24em] font-semibold text-[#1E2342]/35">
+                        <span className="mt-4 font-sans text-[8.5px] uppercase tracking-[0.26em] font-semibold text-[#1E2342]/28">
                           {item.tag}
                         </span>
                       </div>
 
-                      {/* Logo card — hover: dark card, logo + blurb + READ MORE */}
-                      <div className="absolute inset-0 bg-[#0D1528] p-8 md:p-9 flex flex-col justify-between opacity-0 translate-y-5 pointer-events-none transition-all duration-[400ms] ease-out group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto">
+                      {/* Logo card — hover: dark, logo top-left + blurb + READ MORE */}
+                      <div className="absolute inset-0 bg-[#0D1528] p-7 md:p-8 flex flex-col justify-between opacity-0 translate-y-4 pointer-events-none transition-all duration-[380ms] ease-out group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto">
                         <img
                           src={item.logo}
                           alt={item.name}
-                          className="h-[44px] object-contain object-left"
+                          className="h-[38px] object-contain object-left"
                         />
                         <div>
-                          <p className="font-sans text-white/70 text-[13px] font-light leading-relaxed mb-7">
+                          <p className="font-sans text-white/68 text-[12.5px] font-light leading-relaxed mb-6">
                             {item.blurb}
                           </p>
                           <a
                             href="#case-studies"
-                            className="inline-flex items-center gap-2 font-sans text-white font-semibold text-[11px] tracking-[0.14em] uppercase border-b border-white/25 pb-px hover:border-white transition-colors duration-200"
+                            className="inline-flex items-center gap-2 font-sans text-white font-semibold text-[10.5px] tracking-[0.14em] uppercase border-b border-white/22 pb-px hover:border-white transition-colors duration-200"
                           >
                             READ MORE →
                           </a>
@@ -634,52 +639,36 @@ export default function Home() {
                     </>
                   ) : (
                     <>
-                      {/* Text card — default face */}
-                      <div className="absolute inset-0 p-8 md:p-10 flex flex-col justify-between transition-all duration-[420ms] ease-out group-hover:opacity-0 group-hover:-translate-y-4">
-                        <span className="font-sans text-[9px] uppercase tracking-[0.28em] font-semibold text-[#F4B41A]">
+                      {/* Gold left bar slides in on hover */}
+                      <span className="absolute left-0 top-0 bottom-0 w-[3px] bg-[#F4B41A] origin-top scale-y-0 group-hover:scale-y-100 transition-transform duration-[380ms] ease-out z-10" />
+
+                      {/* Subtle inner glow on hover */}
+                      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                        style={{ background: 'radial-gradient(ellipse at 20% 50%, rgba(244,180,26,0.055) 0%, transparent 70%)' }} />
+
+                      {/* Text card — always-visible content */}
+                      <div className="absolute inset-0 p-7 md:p-8 flex flex-col justify-between">
+                        <span className="font-sans text-[8.5px] uppercase tracking-[0.28em] font-semibold text-[#F4B41A]">
                           {item.tag}
                         </span>
                         <div>
                           <h3
-                            className="font-serif text-[#1E2342] font-semibold leading-snug mb-3"
-                            style={{ fontSize: 'clamp(1.08rem, 1.45vw, 1.38rem)' }}
+                            className="font-serif text-white font-semibold leading-snug mb-2.5"
+                            style={{ fontSize: 'clamp(1.02rem, 1.4vw, 1.28rem)' }}
                           >
                             {item.name}
                           </h3>
-                          <p className="font-sans text-[#1E2342]/40 text-[13px] font-light leading-relaxed">
+                          <p className="font-sans text-white/46 text-[12.5px] font-light leading-relaxed mb-4">
                             {item.teaser}
                           </p>
-                        </div>
-                      </div>
-
-                      {/* Text card — hover face */}
-                      <div className="absolute inset-0 bg-[#1E2342] p-8 md:p-10 flex flex-col justify-between opacity-0 translate-y-6 pointer-events-none transition-all duration-[420ms] ease-out group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto">
-                        <span className="font-sans text-[9px] uppercase tracking-[0.28em] font-semibold text-[#F4B41A]">
-                          {item.tag}
-                        </span>
-                        <div>
-                          <h3
-                            className="font-serif text-white font-semibold leading-snug mb-5"
-                            style={{ fontSize: 'clamp(1rem, 1.4vw, 1.3rem)' }}
-                          >
-                            {item.name}
-                          </h3>
-                          <ul className="space-y-2 mb-6">
-                            {item.details.map((line, li) => (
-                              <li key={li} className="flex items-start gap-2.5 font-sans text-white/55 text-[12.5px] font-light leading-snug">
-                                <span className="text-[#F4B41A] mt-[3px] flex-shrink-0 text-[10px]">→</span>
+                          <ul className="space-y-1.5">
+                            {item.details.slice(0, 3).map((line, li) => (
+                              <li key={li} className="flex items-start gap-2 font-sans text-white/32 text-[11.5px] font-light leading-snug group-hover:text-white/52 transition-colors duration-300">
+                                <span className="text-[#F4B41A]/50 mt-[3px] flex-shrink-0 text-[9px] group-hover:text-[#F4B41A] transition-colors duration-300">→</span>
                                 {line}
                               </li>
                             ))}
                           </ul>
-                          {item.outcome && (
-                            <div className="font-sans text-[9px] uppercase tracking-[0.22em] text-[#F4B41A]/65 mb-3">
-                              Outcome: {item.outcome}
-                            </div>
-                          )}
-                          <span className="inline-flex items-center gap-1.5 font-sans text-[#F4B41A] text-[11px] font-semibold tracking-[0.1em] border-b border-[#F4B41A]/30 pb-px hover:border-[#F4B41A] transition-colors">
-                            READ MORE →
-                          </span>
                         </div>
                       </div>
                     </>
