@@ -863,7 +863,10 @@ export default function Home() {
                       <p className="font-sans text-[9px] uppercase tracking-[0.22em] mb-3 text-[#F4B41A]">
                         The Situation
                       </p>
-                      <p className={`font-sans font-light text-[14px] leading-[1.88] transition-colors duration-700 ${csDark ? 'text-white/80' : 'text-[#1E2342]/65'}`}>
+                      <p
+                        className="font-sans font-light text-[14px] leading-[1.88] transition-colors duration-700"
+                        style={{ color: csDark ? 'rgba(255,255,255,0.82)' : 'rgba(30,35,66,0.68)' }}
+                      >
                         {cs.situation}
                       </p>
                     </div>
@@ -874,7 +877,11 @@ export default function Home() {
                       </p>
                       <ul className="space-y-2.5 mb-8">
                         {cs.approach.map((line, li) => (
-                          <li key={li} className={`flex items-start gap-2.5 font-sans font-light text-[13.5px] leading-snug transition-colors duration-700 ${csDark ? 'text-white/82' : 'text-[#1E2342]/68'}`}>
+                          <li
+                            key={li}
+                            className="flex items-start gap-2.5 font-sans font-light text-[13.5px] leading-snug transition-colors duration-700"
+                            style={{ color: csDark ? 'rgba(255,255,255,0.85)' : 'rgba(30,35,66,0.70)' }}
+                          >
                             <span className="text-[#F4B41A] mt-[3px] flex-shrink-0 text-[10px]">→</span>
                             {line}
                           </li>
@@ -890,7 +897,10 @@ export default function Home() {
                         >
                           {cs.outcome}
                         </p>
-                        <p className={`font-sans font-light text-[12.5px] leading-relaxed transition-colors duration-700 ${csDark ? 'text-white/65' : 'text-[#1E2342]/55'}`}>
+                        <p
+                          className="font-sans font-light text-[12.5px] leading-relaxed transition-colors duration-700"
+                          style={{ color: csDark ? 'rgba(255,255,255,0.68)' : 'rgba(30,35,66,0.58)' }}
+                        >
                           {cs.outcomeDetail}
                         </p>
                       </div>
