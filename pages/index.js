@@ -552,73 +552,75 @@ export default function Home() {
 
         </section>
 
-        {/* ══ §FOUNDERS — floating portrait cards ═════════════════════ */}
+        {/* ══ §FOUNDERS — photo + text panel cards ════════════════════ */}
         <section
           id="team-band"
-          className="scroll-mt-[64px] relative bg-[#FAF9F6] py-16 md:py-20 px-6 md:px-14 overflow-visible border-t border-[rgba(30,35,66,0.07)]"
+          className="scroll-mt-[64px] bg-[#FAF9F6] py-16 md:py-20 px-6 md:px-14 border-t border-[rgba(30,35,66,0.07)]"
         >
-          <div className="relative max-w-[1440px] mx-auto">
-            <div className="flex flex-col md:flex-row gap-8 md:gap-0 items-center md:items-end justify-center">
+          <div className="max-w-[860px] mx-auto space-y-5">
 
-              {FOUNDERS.map((f, i) => (
+            {FOUNDERS.map((f, i) => (
+              <div
+                key={f.index}
+                className={`group flex items-stretch cursor-default overflow-hidden rounded-[3px]
+                  transition-all duration-400 ease-out
+                  hover:-translate-y-2 hover:shadow-[0_18px_60px_rgba(30,35,66,0.13)]
+                  ${i === 1 ? 'md:ml-20' : ''}`}
+                style={{ boxShadow: '0 4px 20px rgba(30,35,66,0.08)' }}
+              >
+                {/* Photo panel */}
                 <div
-                  key={f.index}
-                  className={`group relative w-full max-w-[280px] md:max-w-[310px] flex-shrink-0
-                    transition-all duration-500 ease-out cursor-default
-                    ${i === 0
-                      ? '-rotate-[2.5deg] hover:rotate-0 md:-mr-8 z-10 hover:z-20'
-                      : 'rotate-[2.5deg] hover:rotate-0 md:-ml-8 z-10 hover:z-20 md:mb-[-32px]'
-                    }
-                    hover:-translate-y-4`}
-                  style={{ boxShadow: '0 14px 48px rgba(30,35,66,0.16)', transition: 'transform 0.5s ease, box-shadow 0.5s ease, rotate 0.5s ease' }}
-                  onMouseEnter={e => e.currentTarget.style.boxShadow = '0 32px 80px rgba(30,35,66,0.28)'}
-                  onMouseLeave={e => e.currentTarget.style.boxShadow = '0 14px 48px rgba(30,35,66,0.16)'}
+                  className="relative flex-shrink-0 overflow-hidden"
+                  style={{ width: '200px', minHeight: '260px' }}
                 >
-                  <div className="relative overflow-hidden" style={{ aspectRatio: '3/4', borderRadius: '4px' }}>
-
-                    <img
-                      src={f.photo}
-                      alt={f.name}
-                      className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
-                      style={{ objectPosition: f.photoPos }}
-                    />
-
-                    {/* Stronger bottom gradient so text is always legible */}
-                    <div className="absolute inset-0" style={{
-                      background: 'linear-gradient(to top, rgba(8,14,31,1) 0%, rgba(8,14,31,0.78) 30%, rgba(8,14,31,0.20) 55%, transparent 100%)'
-                    }} />
-
-                    {/* Gold top line on hover */}
-                    <div className="absolute top-0 left-0 right-0 h-[2px] bg-[#F4B41A] origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out" />
-
-                    {/* Text */}
-                    <div className="absolute bottom-0 left-0 right-0 p-5">
-                      <span className="block font-sans text-[#F4B41A] text-[8px] uppercase tracking-[0.28em] font-semibold mb-2">
-                        {f.role}
-                      </span>
-                      <h3
-                        className="font-serif text-white font-semibold leading-tight mb-1.5"
-                        style={{ fontSize: 'clamp(1.1rem, 1.8vw, 1.4rem)' }}
-                      >
-                        {f.name}
-                      </h3>
-                      <p className="font-sans text-white/70 text-[9px] tracking-[0.1em] font-light leading-relaxed">
-                        {f.credentials}
-                      </p>
-
-                      {/* Bio slides up on hover */}
-                      <div className="overflow-hidden transition-all duration-500 ease-out max-h-0 group-hover:max-h-[100px]">
-                        <p className="font-sans text-white/72 text-[11px] font-light leading-[1.75] mt-3 pr-1">
-                          {f.bio.split('.').slice(0, 2).join('.') + '.'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+                  <img
+                    src={f.photo}
+                    alt={f.name}
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
+                    style={{ objectPosition: f.photoPos }}
+                  />
+                  {/* Right-edge fade so photo bleeds cleanly into text panel */}
+                  <div className="absolute inset-0" style={{
+                    background: 'linear-gradient(to right, transparent 55%, rgba(255,255,255,0.18) 100%)'
+                  }} />
                 </div>
-              ))}
-            </div>
 
-            <p className="mt-10 text-center font-sans text-[8.5px] uppercase tracking-[0.28em] text-[#1E2342]/22 font-light">
+                {/* Text panel */}
+                <div className="flex-1 bg-white border border-l-0 border-[rgba(30,35,66,0.09)] px-7 py-6 flex flex-col justify-between relative overflow-hidden">
+
+                  {/* Gold left bar slides in on hover */}
+                  <span className="absolute left-0 top-0 bottom-0 w-[3px] bg-[#F4B41A] origin-top scale-y-0 group-hover:scale-y-100 transition-transform duration-400 ease-out" />
+
+                  {/* Top: role tag */}
+                  <span className="font-sans text-[#F4B41A] text-[8px] uppercase tracking-[0.3em] font-semibold">
+                    {f.role}
+                  </span>
+
+                  {/* Middle: name + credentials */}
+                  <div>
+                    <h3
+                      className="font-serif text-[#1E2342] font-semibold leading-tight mb-2"
+                      style={{ fontSize: 'clamp(1.15rem, 1.9vw, 1.55rem)' }}
+                    >
+                      {f.name}
+                    </h3>
+                    <p className="font-sans text-[#1E2342]/52 text-[9.5px] tracking-[0.09em] font-light leading-relaxed mb-4">
+                      {f.credentials}
+                    </p>
+                    <p className="font-sans text-[#1E2342]/60 text-[12px] font-light leading-[1.8]">
+                      {f.bio.split('.').slice(0, 2).join('.') + '.'}
+                    </p>
+                  </div>
+
+                  {/* Bottom: index */}
+                  <span className="font-sans text-[8px] uppercase tracking-[0.22em] text-[#1E2342]/20">
+                    {f.index} / 02
+                  </span>
+                </div>
+              </div>
+            ))}
+
+            <p className="pt-4 text-center font-sans text-[8px] uppercase tracking-[0.28em] text-[#1E2342]/22 font-light">
               The people behind Sunward Growth Advisory
             </p>
           </div>
