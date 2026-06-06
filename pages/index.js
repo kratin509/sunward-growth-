@@ -2,7 +2,7 @@ import Head from 'next/head';
 import { useState, useEffect, useRef } from 'react';
 import { Menu, X } from 'lucide-react';
 
-/* ─────────────────────────────────────────────────────── HOOKS */
+/* ─────────────────────────────────────────────── HOOKS */
 function useCountUp(target, duration = 2000, trigger = false) {
   const [value, setValue] = useState(0);
   useEffect(() => {
@@ -39,7 +39,7 @@ function useInView(threshold = 0.2) {
   return [ref, inView];
 }
 
-/* ─────────────────────────────────────────────────────── SUNWARD MARK */
+/* ─────────────────────────────────────────────── SUNWARD MARK */
 function SunwardMark({ size = 36 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 100 100" fill="none" aria-hidden="true">
@@ -48,8 +48,7 @@ function SunwardMark({ size = 36 }) {
         return (
           <g key={i} transform={`rotate(${i * 22.5} 50 50)`}>
             <ellipse
-              cx="50"
-              cy={main ? 21 : 24}
+              cx="50" cy={main ? 21 : 24}
               rx={main ? 4.5 : 3}
               ry={main ? 13 : 9}
               fill={main ? '#F4B41A' : '#EAB308'}
@@ -69,79 +68,127 @@ function SunwardMark({ size = 36 }) {
   );
 }
 
-/* ─────────────────────────────────────────────────────── TOPO BACKGROUND
-   Quarter-ellipse bezier contours radiating from the top-right corner.
-   κ ≈ 0.5523 is the cubic-bezier magic constant for ellipse approximation.
-   Each path: M (cx−rx),0  C (cx−rx),(κ·ry)  (cx−κ·rx),(ry)  cx,ry          */
-function TopoBackground() {
-  const ref = useRef(null);
+/* ─────────────────────────────────────────────── WAVE CANVAS
+   Cursor-driven pseudo-3D topographic contour animation.
+   22 organic closed curves rendered via parametric sine superposition.
+   Mouse position drives:
+     • formation centre drift
+     • yScale (perspective ellipse squish — simulates X-axis tilt)
+     • xShear (simulates Y-axis tilt)
+   All state lives in refs; zero React re-renders during animation.        */
+function WaveCanvas() {
+  const canvasRef = useRef(null);
+  const mouseRef  = useRef({ x: 600, y: 400 });   // raw mouse (viewport coords)
+  const curRef    = useRef({ x: 600, y: 400 });   // lerped smooth position
+  const timeRef   = useRef(0);
+  const rafRef    = useRef(null);
 
   useEffect(() => {
-    const fn = () => {
-      if (ref.current)
-        ref.current.style.transform = `translateY(${window.scrollY * 0.12}px)`;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const onMouse = (e) => {
+      mouseRef.current.x = e.clientX;
+      mouseRef.current.y = e.clientY;
     };
-    window.addEventListener('scroll', fn, { passive: true });
-    return () => window.removeEventListener('scroll', fn);
+    window.addEventListener('mousemove', onMouse, { passive: true });
+
+    function draw() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const W = canvas.clientWidth;
+      const H = canvas.clientHeight;
+      if (!W || !H) return;
+      if (canvas.width !== W * dpr || canvas.height !== H * dpr) {
+        canvas.width  = W * dpr;
+        canvas.height = H * dpr;
+      }
+
+      const ctx = canvas.getContext('2d');
+      ctx.save();
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.scale(dpr, dpr);
+
+      const mx  = curRef.current.x;
+      const my  = curRef.current.y;
+      const t   = timeRef.current;
+      const IW  = window.innerWidth  || 1440;
+      const IH  = window.innerHeight || 800;
+
+      // Normalised mouse (0–1) across full viewport
+      const normX = mx / IW;
+      const normY = my / IH;
+
+      // Formation centre — gentle drift with mouse
+      const cx = W * 0.50 + (normX - 0.5) * 44;
+      const cy = H * 0.46 + (normY - 0.5) * 30;
+
+      // Pseudo-3D perspective parameters driven by mouse
+      const yScale = 0.48 + normX * 0.24;        // 0.48–0.72  (X-tilt)
+      const xShear = (normY - 0.5) * 0.16;       // ±0.08      (Y-tilt)
+
+      const N     = 22;
+      const STEPS = 64;
+
+      for (let i = 0; i < N; i++) {
+        const rBase = 20 + i * 15;
+
+        ctx.beginPath();
+        for (let j = 0; j <= STEPS; j++) {
+          const angle = (j / STEPS) * Math.PI * 2;
+          // Multi-frequency organic distortion
+          const d =
+            Math.sin(angle * 3 + t       + i * 0.42) * rBase * 0.22 +
+            Math.sin(angle * 5 - t * 1.4 + i * 0.28) * rBase * 0.11 +
+            Math.sin(angle * 7 + t * 0.9 + i * 0.17) * rBase * 0.055;
+          const r    = rBase + d;
+          const cosA = Math.cos(angle);
+          const sinA = Math.sin(angle);
+          // Apply perspective transform
+          const px = cx + cosA * r + sinA * r * xShear;
+          const py = cy + sinA * r * yScale + cosA * r * xShear * 0.35;
+          j === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+
+        const alpha    = Math.max(0.009, 0.076 - i * 0.0026);
+        const isGold   = i % 5 === 0 || i % 8 === 2;
+        ctx.strokeStyle = isGold
+          ? `rgba(244,180,26,${(alpha * 1.75).toFixed(4)})`
+          : `rgba(30,35,66,${alpha.toFixed(4)})`;
+        ctx.lineWidth  = 0.65;
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    }
+
+    function loop() {
+      // Smooth lerp toward mouse target
+      curRef.current.x += (mouseRef.current.x - curRef.current.x) * 0.036;
+      curRef.current.y += (mouseRef.current.y - curRef.current.y) * 0.036;
+      timeRef.current  += 0.008;
+      draw();
+      rafRef.current = requestAnimationFrame(loop);
+    }
+
+    rafRef.current = requestAnimationFrame(loop);
+
+    return () => {
+      cancelAnimationFrame(rafRef.current);
+      window.removeEventListener('mousemove', onMouse);
+    };
   }, []);
 
-  const κ = 0.5523;
-  const CX = 900;
-
-  // [rx, ry, strokeOpacity] — 13 contours, innermost to outermost
-  const rings = [
-    [80,  68,   0.092],
-    [125, 106,  0.082],
-    [173, 147,  0.073],
-    [224, 190,  0.065],
-    [278, 236,  0.057],
-    [335, 285,  0.050],
-    [395, 336,  0.043],
-    [458, 389,  0.037],
-    [524, 445,  0.031],
-    [593, 504,  0.026],
-    [665, 565,  0.021],
-    [740, 629,  0.017],
-    [818, 695,  0.013],
-  ];
-
   return (
-    <div
-      ref={ref}
+    <canvas
+      ref={canvasRef}
+      className="absolute inset-0 w-full h-full"
       aria-hidden="true"
-      className="absolute right-0 top-0 pointer-events-none select-none z-0"
-      style={{ width: 'min(68%, 900px)', height: '100%', willChange: 'transform' }}
-    >
-      <svg
-        viewBox="0 0 900 700"
-        preserveAspectRatio="xMaxYMin meet"
-        className="w-full h-full"
-        fill="none"
-      >
-        {rings.map(([rx, ry, op], i) => {
-          const d = [
-            `M ${CX - rx},0`,
-            `C ${CX - rx},${(κ * ry).toFixed(2)}`,
-            `  ${(CX - κ * rx).toFixed(2)},${ry}`,
-            `  ${CX},${ry}`,
-          ].join(' ');
-          return (
-            <path
-              key={i}
-              d={d}
-              stroke="#F4B41A"
-              strokeWidth={0.75}
-              strokeOpacity={op}
-              fill="none"
-            />
-          );
-        })}
-      </svg>
-    </div>
+    />
   );
 }
 
-/* ─────────────────────────────────────────────────────── DATA */
+/* ─────────────────────────────────────────────── DATA */
 const NAV_LINKS = [
   { label: 'About',    href: '#manifesto'    },
   { label: 'Services', href: '#portfolio'    },
@@ -256,8 +303,7 @@ const CASE_STUDIES = [
       'Created a replicable expansion playbook for new retail locations',
     ],
     outcome: 'Clear Growth Direction',
-    outcomeDetail:
-      'A replicable system for store-by-store expansion across premium retail channels.',
+    outcomeDetail: 'A replicable system for store-by-store expansion across premium retail channels.',
   },
   {
     index: '02',
@@ -273,8 +319,7 @@ const CASE_STUDIES = [
       'Developed a phased market entry plan with measurable milestones',
     ],
     outcome: 'Stronger Market Positioning',
-    outcomeDetail:
-      'Sharper customer acquisition and measurable segment growth within 90 days of implementation.',
+    outcomeDetail: 'Sharper customer acquisition and measurable segment growth within 90 days of implementation.',
   },
   {
     index: '03',
@@ -290,12 +335,11 @@ const CASE_STUDIES = [
       'Built a B2B outreach engine for corporate bookings and long-stay clients',
     ],
     outcome: 'Better Visibility & Revenue Flow',
-    outcomeDetail:
-      'Improved conversion from high-intent visitors and measurable corporate account growth.',
+    outcomeDetail: 'Improved conversion from high-intent visitors and measurable corporate account growth.',
   },
 ];
 
-/* ─────────────────────────────────────────────────────── PAGE */
+/* ─────────────────────────────────────────────── PAGE */
 export default function Home() {
   const [navScrolled, setNavScrolled] = useState(false);
   const [menuOpen,    setMenuOpen]    = useState(false);
@@ -324,28 +368,28 @@ export default function Home() {
         <meta property="og:type" content="website" />
       </Head>
 
-      {/* ── Fixed left-margin border + diamond node ───────────────── */}
+      {/* ── Fixed left-margin rule + diamond node ─────────────────── */}
       <aside
         aria-hidden="true"
         className="fixed left-0 top-0 h-full z-50 pointer-events-none select-none"
         style={{ width: '1px' }}
       >
-        {/* Vertical rule */}
+        {/* Faint navy vertical rule */}
         <div
           className="absolute inset-0"
           style={{
             background:
-              'linear-gradient(to bottom, transparent 0%, rgba(244,180,26,0.20) 10%, rgba(244,180,26,0.20) 90%, transparent 100%)',
+              'linear-gradient(to bottom, transparent 0%, rgba(30,35,66,0.14) 12%, rgba(30,35,66,0.14) 88%, transparent 100%)',
           }}
         />
-        {/* Diamond node at ~32 vh — sits at the intersection of header + hero */}
+        {/* Gold diamond node — at mid-hero text baseline */}
         <div
           className="absolute w-[9px] h-[9px] rotate-45 bg-[#F4B41A]"
-          style={{ top: 'calc(32vh - 4.5px)', left: '-4px' }}
+          style={{ top: 'calc(50vh - 4.5px)', left: '-4px' }}
         />
       </aside>
 
-      {/* ══ §1  HEADER ════════════════════════════════════════════════ */}
+      {/* ══ §1  HEADER ══════════════════════════════════════════════ */}
       <header
         className={`fixed inset-x-0 top-0 z-40 bg-[#FAF9F6] transition-all duration-300 ${
           navScrolled ? 'shadow-[0_1px_0_rgba(30,35,66,0.08)]' : ''
@@ -353,7 +397,7 @@ export default function Home() {
       >
         <div className="max-w-[1440px] mx-auto px-8 md:px-14 h-[64px] flex items-center justify-between">
 
-          {/* Brand mark + wordmark */}
+          {/* Logo */}
           <a href="#" className="group flex items-center gap-2.5 select-none flex-shrink-0">
             <SunwardMark size={30} />
             <span className="hidden sm:inline font-serif text-[12.5px] font-semibold text-[#1E2342] tracking-[0.18em] uppercase group-hover:text-[#F4B41A] transition-colors duration-300">
@@ -361,7 +405,7 @@ export default function Home() {
             </span>
           </a>
 
-          {/* Desktop nav — centered underline scales from centre on hover */}
+          {/* Desktop nav — gold underline scales from centre on hover */}
           <nav className="hidden md:flex items-center gap-10" aria-label="Primary navigation">
             {NAV_LINKS.map(({ label, href }) => (
               <a
@@ -370,22 +414,20 @@ export default function Home() {
                 className="group relative font-sans text-[12px] text-[#1E2342]/48 hover:text-[#1E2342] transition-colors duration-200 tracking-[0.04em] py-1"
               >
                 {label}
-                {/* Centred underline slide */}
                 <span className="absolute bottom-0 left-0 w-full h-px bg-[#F4B41A] origin-center scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out" />
               </a>
             ))}
           </nav>
 
-          {/* CTA — fills with warm gold on hover */}
+          {/* CTA — fills warm gold on hover */}
           <div className="flex items-center gap-4">
             <a
               href="mailto:info@sunwardgrowth.com"
-              className="hidden md:inline-flex items-center gap-2 border border-[#1E2342] text-[#1E2342] font-sans text-[11.5px] font-medium px-5 py-[10px] rounded-sm tracking-[0.04em] transition-all duration-250 hover:bg-[#F4B41A] hover:border-[#F4B41A]"
+              className="group hidden md:inline-flex items-center gap-2 border border-[#1E2342] text-[#1E2342] font-sans text-[11.5px] font-medium px-5 py-[10px] rounded-sm tracking-[0.04em] transition-all duration-250 hover:bg-[#F4B41A] hover:border-[#F4B41A]"
             >
               Book a Discovery Call
               <span className="text-[#F4B41A] group-hover:text-[#1E2342] transition-colors duration-250">↗</span>
             </a>
-
             <button
               className="md:hidden p-2 -mr-1"
               onClick={() => setMenuOpen((o) => !o)}
@@ -429,65 +471,73 @@ export default function Home() {
 
       <main>
 
-        {/* ══ §2  EDITORIAL HERO ══════════════════════════════════════ */}
-        <section className="relative min-h-screen bg-[#FAF9F6] flex flex-col pt-[64px] overflow-hidden">
+        {/* ══ §2  HERO — 85 vh cap, left text / right canvas ══════════ */}
+        <section className="relative bg-[#FAF9F6] pt-[64px] overflow-hidden">
 
-          {/* Topographic contour background — upper-right quadrant */}
-          <TopoBackground />
+          {/* Hero body — height capped at 85 vh */}
+          <div className="relative min-h-[85vh] flex items-center">
 
-          {/* ── Editorial text block — centred with luxury breathing room ── */}
-          <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-6 md:px-14 pt-12 pb-32">
-
-            {/* Eyebrow rule */}
-            <div className="flex items-center gap-4 mb-12">
-              <span className="w-10 h-px bg-[#F4B41A]" />
-              <span className="font-sans text-[10px] uppercase tracking-[0.32em] text-[#1E2342]/40">
-                Growth Advisory · Est. 2009
-              </span>
-              <span className="w-10 h-px bg-[#F4B41A]" />
+            {/* Interactive canvas — right 55 % of section (desktop only) */}
+            <div className="absolute inset-y-0 right-0 w-[55%] hidden md:block">
+              <WaveCanvas />
             </div>
 
-            {/* Main headline */}
-            <h1
-              className="font-serif text-[#1E2342] leading-[1.06] tracking-[-0.028em] mb-9 max-w-5xl"
-              style={{ fontSize: 'clamp(3.2rem, 9vw, 9.5rem)' }}
-            >
-              Your North Star for
-              <br />
-              <span className="italic font-light">Business Transformation.</span>
-            </h1>
+            {/* Editorial text block — left column */}
+            <div className="relative z-10 w-full max-w-[1440px] mx-auto px-8 md:px-14 py-20">
+              <div className="flex flex-col items-center md:items-start text-center md:text-left md:max-w-[46%]">
 
-            {/* Tagline */}
-            <p
-              className="font-sans font-light text-[#1E2342]/48 max-w-lg tracking-[0.07em] mb-14 leading-relaxed"
-              style={{ fontSize: 'clamp(0.85rem, 1.1vw, 0.97rem)' }}
-            >
-              Strategy{' '}
-              <span className="text-[#F4B41A] mx-1.5">•</span>
-              {' '}Scale{' '}
-              <span className="text-[#F4B41A] mx-1.5">•</span>
-              {' '}Growth — for MSMEs, Startups, and Universities.
-            </p>
+                {/* Eyebrow */}
+                <div className="flex items-center justify-center md:justify-start gap-4 mb-9">
+                  <span className="w-8 h-px bg-[#F4B41A]" />
+                  <span className="font-sans text-[10px] uppercase tracking-[0.32em] text-[#1E2342]/40">
+                    Growth Advisory · Est. 2009
+                  </span>
+                  <span className="w-8 h-px bg-[#F4B41A] md:hidden" />
+                </div>
 
-            {/* CTA pair */}
-            <div className="flex flex-col sm:flex-row items-center gap-4">
-              <a
-                href="mailto:info@sunwardgrowth.com"
-                className="inline-flex items-center gap-2.5 bg-[#1E2342] text-[#FAF9F6] font-sans text-[12.5px] font-medium tracking-[0.04em] px-9 py-4 rounded-sm hover:bg-[#F4B41A] hover:text-[#1E2342] hover:-translate-y-0.5 hover:shadow-[0_14px_36px_rgba(244,180,26,0.28)] transition-all duration-300"
-              >
-                Book a Free Discovery Call
-                <span className="text-[15px] leading-none">↗</span>
-              </a>
-              <a
-                href="#portfolio"
-                className="inline-flex items-center gap-2 border border-[rgba(30,35,66,0.22)] text-[#1E2342] font-sans text-[12.5px] font-medium tracking-[0.04em] px-9 py-4 rounded-sm hover:border-[#F4B41A] hover:bg-[rgba(244,180,26,0.07)] transition-all duration-300"
-              >
-                View Our Work
-              </a>
+                {/* Headline — crisp editorial scale, two lines */}
+                <h1
+                  className="font-serif text-[#1E2342] leading-[1.10] tracking-[-0.020em] mb-7"
+                  style={{ fontSize: 'clamp(2.4rem, 3.5vw, 4.2rem)' }}
+                >
+                  Your North Star for
+                  <br />
+                  <span className="italic font-light">Business Transformation.</span>
+                </h1>
+
+                {/* Tagline */}
+                <p
+                  className="font-sans font-light text-[#1E2342]/48 tracking-[0.065em] mb-12 leading-relaxed max-w-sm md:max-w-none"
+                  style={{ fontSize: 'clamp(0.80rem, 0.95vw, 0.90rem)' }}
+                >
+                  Strategy{' '}
+                  <span className="text-[#F4B41A] mx-1.5">•</span>
+                  {' '}Scale{' '}
+                  <span className="text-[#F4B41A] mx-1.5">•</span>
+                  {' '}Growth — for MSMEs, Startups, and Universities.
+                </p>
+
+                {/* CTA pair */}
+                <div className="flex flex-col sm:flex-row items-center md:items-start gap-4">
+                  <a
+                    href="mailto:info@sunwardgrowth.com"
+                    className="inline-flex items-center gap-2.5 bg-[#1E2342] text-[#FAF9F6] font-sans text-[12px] font-medium tracking-[0.05em] px-7 py-[13px] rounded-sm hover:bg-[#F4B41A] hover:text-[#1E2342] hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(244,180,26,0.30)] transition-all duration-300"
+                  >
+                    Book a Free Discovery Call
+                    <span className="text-[14px] leading-none">↗</span>
+                  </a>
+                  <a
+                    href="#portfolio"
+                    className="inline-flex items-center gap-2 border border-[rgba(30,35,66,0.22)] text-[#1E2342] font-sans text-[12px] font-medium tracking-[0.05em] px-7 py-[13px] rounded-sm hover:border-[#F4B41A] hover:bg-[rgba(244,180,26,0.07)] transition-all duration-300"
+                  >
+                    View Our Work
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* ── Infinite founder marquee band ── */}
+          {/* Infinite founder marquee band */}
           <div
             id="team-band"
             className="relative z-10 border-t border-[rgba(30,35,66,0.08)] py-9 overflow-hidden bg-[#FAF9F6]"
@@ -498,7 +548,7 @@ export default function Home() {
                   key={i}
                   className="flex-shrink-0 flex flex-col items-center px-10 cursor-default"
                 >
-                  <div className="w-[56px] h-[56px] rounded-full bg-[#1E2342] flex items-center justify-center font-serif text-[#F4B41A] text-[1.1rem] font-bold mb-3 ring-[1.5px] ring-offset-[3px] ring-offset-[#FAF9F6] ring-[rgba(30,35,66,0.12)]">
+                  <div className="w-[54px] h-[54px] rounded-full bg-[#1E2342] flex items-center justify-center font-serif text-[#F4B41A] text-[1.05rem] font-bold mb-3 ring-[1.5px] ring-offset-[3px] ring-offset-[#FAF9F6] ring-[rgba(30,35,66,0.12)]">
                     {member.initials}
                   </div>
                   <div className="font-serif text-[#1E2342] text-[13px] font-semibold text-center whitespace-nowrap leading-tight">
@@ -513,7 +563,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ══ §3  PORTFOLIO MATRIX GRID ══════════════════════════════ */}
+        {/* ══ §3  PORTFOLIO MATRIX GRID ════════════════════════════════ */}
         <section
           id="portfolio"
           className="scroll-mt-[64px] bg-[#FAF9F6] px-6 md:px-14 xl:px-20 py-24 border-t border-[rgba(30,35,66,0.08)]"
@@ -536,14 +586,12 @@ export default function Home() {
               </p>
             </div>
 
-            {/* 3×2 grid — 1px gap reveals parent bg as hairline dividers */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[1px] bg-[rgba(30,35,66,0.10)] border border-[rgba(30,35,66,0.10)]">
               {PORTFOLIO.map((item, i) => (
                 <div
                   key={i}
                   className="group relative bg-[#FAF9F6] min-h-[310px] md:min-h-[330px] overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.025] hover:z-10 hover:shadow-[0_20px_52px_rgba(30,35,66,0.12)]"
                 >
-                  {/* Gold bottom border — sweeps in on hover */}
                   <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#F4B41A] z-10 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out pointer-events-none" />
 
                   {/* Default face */}
@@ -631,7 +679,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ══ §5  CASE STUDIES — scroll-triggered dark inversion ════════ */}
+        {/* ══ §5  CASE STUDIES — scroll-triggered dark ═════════════════ */}
         <section
           id="case-studies"
           ref={csRef}
@@ -644,25 +692,19 @@ export default function Home() {
             <div className="mb-20 max-w-3xl">
               <div className="flex items-center gap-4 mb-8">
                 <span className="w-8 h-px bg-[#F4B41A]" />
-                <span className={`font-sans text-[10px] uppercase tracking-[0.3em] transition-colors duration-700 ${
-                  csDark ? 'text-[#F4B41A]' : 'text-[#1E2342]/38'
-                }`}>
+                <span className={`font-sans text-[10px] uppercase tracking-[0.3em] transition-colors duration-700 ${csDark ? 'text-[#F4B41A]' : 'text-[#1E2342]/38'}`}>
                   Client Work
                 </span>
               </div>
               <h2
-                className={`font-serif font-semibold leading-[1.1] tracking-[-0.022em] mb-5 transition-colors duration-700 ${
-                  csDark ? 'text-white' : 'text-[#1E2342]'
-                }`}
+                className={`font-serif font-semibold leading-[1.1] tracking-[-0.022em] mb-5 transition-colors duration-700 ${csDark ? 'text-white' : 'text-[#1E2342]'}`}
                 style={{ fontSize: 'clamp(2rem, 4.5vw, 4.2rem)' }}
               >
                 What we've{' '}
                 <span className="italic font-light">built together.</span>
               </h2>
               <p
-                className={`font-sans font-light leading-relaxed tracking-[0.02em] transition-colors duration-700 ${
-                  csDark ? 'text-white/48' : 'text-[#1E2342]/48'
-                }`}
+                className={`font-sans font-light leading-relaxed tracking-[0.02em] transition-colors duration-700 ${csDark ? 'text-white/48' : 'text-[#1E2342]/48'}`}
                 style={{ fontSize: 'clamp(0.92rem, 1.2vw, 1.04rem)' }}
               >
                 Each engagement starts with diagnosis. Every outcome is earned.
@@ -673,30 +715,22 @@ export default function Home() {
               {CASE_STUDIES.map((cs) => (
                 <div
                   key={cs.index}
-                  className={`border transition-colors duration-700 ${
-                    csDark ? 'border-white/[0.09]' : 'border-[rgba(30,35,66,0.09)]'
-                  }`}
+                  className={`border transition-colors duration-700 ${csDark ? 'border-white/[0.09]' : 'border-[rgba(30,35,66,0.09)]'}`}
                 >
                   <div className="p-8 md:p-12 grid md:grid-cols-[88px_1fr_1fr] gap-8 md:gap-14">
 
-                    {/* Index + sector */}
                     <div className="flex md:flex-col gap-4 md:gap-2">
                       <span className="font-serif text-[#F4B41A] font-bold leading-none" style={{ fontSize: 'clamp(2rem, 3vw, 2.8rem)' }}>
                         {cs.index}
                       </span>
-                      <span className={`font-sans text-[9px] uppercase tracking-[0.25em] md:mt-1 transition-colors duration-700 ${
-                        csDark ? 'text-white/28' : 'text-[#1E2342]/30'
-                      }`}>
+                      <span className={`font-sans text-[9px] uppercase tracking-[0.25em] md:mt-1 transition-colors duration-700 ${csDark ? 'text-white/28' : 'text-[#1E2342]/30'}`}>
                         {cs.sector}
                       </span>
                     </div>
 
-                    {/* Situation */}
                     <div>
                       <h3
-                        className={`font-serif font-semibold leading-snug mb-4 transition-colors duration-700 ${
-                          csDark ? 'text-white' : 'text-[#1E2342]'
-                        }`}
+                        className={`font-serif font-semibold leading-snug mb-4 transition-colors duration-700 ${csDark ? 'text-white' : 'text-[#1E2342]'}`}
                         style={{ fontSize: 'clamp(1.12rem, 1.6vw, 1.5rem)' }}
                       >
                         {cs.name}
@@ -704,42 +738,34 @@ export default function Home() {
                       <p className="font-sans text-[9px] uppercase tracking-[0.22em] mb-3 text-[#F4B41A]">
                         The Situation
                       </p>
-                      <p className={`font-sans font-light text-[14px] leading-[1.88] transition-colors duration-700 ${
-                        csDark ? 'text-white/55' : 'text-[#1E2342]/52'
-                      }`}>
+                      <p className={`font-sans font-light text-[14px] leading-[1.88] transition-colors duration-700 ${csDark ? 'text-white/55' : 'text-[#1E2342]/52'}`}>
                         {cs.situation}
                       </p>
                     </div>
 
-                    {/* Approach + outcome */}
                     <div>
                       <p className="font-sans text-[9px] uppercase tracking-[0.22em] mb-4 text-[#F4B41A]">
                         Our Approach
                       </p>
                       <ul className="space-y-2.5 mb-8">
                         {cs.approach.map((line, li) => (
-                          <li key={li} className={`flex items-start gap-2.5 font-sans font-light text-[13.5px] leading-snug transition-colors duration-700 ${
-                            csDark ? 'text-white/52' : 'text-[#1E2342]/52'
-                          }`}>
+                          <li key={li} className={`flex items-start gap-2.5 font-sans font-light text-[13.5px] leading-snug transition-colors duration-700 ${csDark ? 'text-white/52' : 'text-[#1E2342]/52'}`}>
                             <span className="text-[#F4B41A] mt-[3px] flex-shrink-0 text-[10px]">→</span>
                             {line}
                           </li>
                         ))}
                       </ul>
-                      <div className={`border-t pt-6 transition-colors duration-700 ${
-                        csDark ? 'border-white/[0.09]' : 'border-[rgba(30,35,66,0.09)]'
-                      }`}>
+                      <div className={`border-t pt-6 transition-colors duration-700 ${csDark ? 'border-white/[0.09]' : 'border-[rgba(30,35,66,0.09)]'}`}>
                         <p className="font-sans text-[9px] uppercase tracking-[0.22em] text-[#F4B41A]/70 mb-1.5">
                           Outcome
                         </p>
-                        <p className={`font-serif italic font-light leading-snug mb-1 transition-colors duration-700 ${
-                          csDark ? 'text-white' : 'text-[#1E2342]'
-                        }`} style={{ fontSize: 'clamp(1rem, 1.3vw, 1.22rem)' }}>
+                        <p
+                          className={`font-serif italic font-light leading-snug mb-1 transition-colors duration-700 ${csDark ? 'text-white' : 'text-[#1E2342]'}`}
+                          style={{ fontSize: 'clamp(1rem, 1.3vw, 1.22rem)' }}
+                        >
                           {cs.outcome}
                         </p>
-                        <p className={`font-sans font-light text-[12.5px] leading-relaxed transition-colors duration-700 ${
-                          csDark ? 'text-white/36' : 'text-[#1E2342]/36'
-                        }`}>
+                        <p className={`font-sans font-light text-[12.5px] leading-relaxed transition-colors duration-700 ${csDark ? 'text-white/36' : 'text-[#1E2342]/36'}`}>
                           {cs.outcomeDetail}
                         </p>
                       </div>
@@ -755,7 +781,6 @@ export default function Home() {
         {/* ══ §6  METRICS + FOOTER ════════════════════════════════════ */}
         <section className="bg-[#1E2342]">
 
-          {/* Counting metrics bar */}
           <div
             ref={metricsRef}
             className="px-6 md:px-14 xl:px-20 pt-20 pb-16 border-b border-white/[0.06]"
@@ -789,12 +814,10 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Footer */}
           <footer id="footer" className="px-6 md:px-14 xl:px-20 pt-16 pb-12">
             <div className="max-w-[1440px] mx-auto">
               <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-12 mb-16">
 
-                {/* Brand block */}
                 <div className="md:col-span-2">
                   <div className="flex items-center gap-2.5 mb-5">
                     <SunwardMark size={26} />
@@ -808,7 +831,6 @@ export default function Home() {
                   </p>
                 </div>
 
-                {/* Contact */}
                 <div>
                   <div className="font-sans text-[9px] uppercase tracking-[0.28em] text-[#F4B41A] mb-5">
                     General Inquiries
@@ -832,7 +854,6 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* Navigate */}
                 <div>
                   <div className="font-sans text-[9px] uppercase tracking-[0.28em] text-[#F4B41A] mb-5">
                     Navigate
@@ -857,7 +878,6 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Bottom bar */}
               <div className="pt-8 border-t border-white/[0.05] flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
                 <span className="font-sans text-white/14 text-[12px]">
                   © {new Date().getFullYear()} Sunward Growth Advisory. All Rights Reserved.
