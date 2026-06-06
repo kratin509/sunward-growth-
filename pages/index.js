@@ -252,6 +252,7 @@ const PORTFOLIO = [
     outcome: 'Better Visibility & Revenue Flow',
   },
   {
+    segment: true,
     tag: 'SEGMENT · MSME',
     name: 'Consumer Brands & MSMEs',
     teaser: 'Ambitious brands ready to scale nationally.',
@@ -265,6 +266,7 @@ const PORTFOLIO = [
     outcome: null,
   },
   {
+    segment: true,
     tag: 'SEGMENT · STARTUP',
     name: 'Early-Stage Startups',
     teaser: 'Pre-seed to Series A founders finding their footing.',
@@ -278,6 +280,7 @@ const PORTFOLIO = [
     outcome: null,
   },
   {
+    segment: true,
     tag: 'SEGMENT · UNIVERSITY',
     name: 'University Innovation Hubs',
     teaser: "Building India's next innovation ecosystem, institution by institution.",
@@ -597,7 +600,9 @@ export default function Home() {
                   className={`group relative min-h-[240px] md:min-h-[256px] overflow-hidden cursor-pointer transition-all duration-300 hover:z-10 ${
                     item.logo
                       ? 'bg-[#FAF9F6] hover:scale-[1.02] hover:shadow-[0_20px_52px_rgba(30,35,66,0.13)]'
-                      : 'bg-[#0D1528]'
+                      : item.segment
+                        ? 'bg-[#0D1528]'
+                        : 'bg-[#FAF9F6] hover:scale-[1.02] hover:shadow-[0_20px_52px_rgba(30,35,66,0.13)]'
                   }`}
                 >
                   {/* Gold bottom sweep — on all cards */}
@@ -625,28 +630,28 @@ export default function Home() {
                           className="h-[38px] object-contain object-left"
                         />
                         <div>
-                          <p className="font-sans text-white/68 text-[12.5px] font-light leading-relaxed mb-6">
+                          <p className="font-sans text-white/70 text-[12.5px] font-light leading-relaxed mb-6">
                             {item.blurb}
                           </p>
                           <a
                             href="#case-studies"
-                            className="inline-flex items-center gap-2 font-sans text-white font-semibold text-[10.5px] tracking-[0.14em] uppercase border-b border-white/22 pb-px hover:border-white transition-colors duration-200"
+                            className="inline-flex items-center gap-2 font-sans text-white font-semibold text-[10.5px] tracking-[0.14em] uppercase border-b border-white/25 pb-px hover:border-white transition-colors duration-200"
                           >
                             READ MORE →
                           </a>
                         </div>
                       </div>
                     </>
-                  ) : (
+                  ) : item.segment ? (
                     <>
+                      {/* Segment card — always dark navy, content always visible */}
                       {/* Gold left bar slides in on hover */}
                       <span className="absolute left-0 top-0 bottom-0 w-[3px] bg-[#F4B41A] origin-top scale-y-0 group-hover:scale-y-100 transition-transform duration-[380ms] ease-out z-10" />
 
-                      {/* Subtle inner glow on hover */}
+                      {/* Subtle gold glow on hover */}
                       <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
-                        style={{ background: 'radial-gradient(ellipse at 20% 50%, rgba(244,180,26,0.055) 0%, transparent 70%)' }} />
+                        style={{ background: 'radial-gradient(ellipse at 20% 50%, rgba(244,180,26,0.06) 0%, transparent 70%)' }} />
 
-                      {/* Text card — always-visible content */}
                       <div className="absolute inset-0 p-7 md:p-8 flex flex-col justify-between">
                         <span className="font-sans text-[8.5px] uppercase tracking-[0.28em] font-semibold text-[#F4B41A]">
                           {item.tag}
@@ -658,17 +663,64 @@ export default function Home() {
                           >
                             {item.name}
                           </h3>
-                          <p className="font-sans text-white/46 text-[12.5px] font-light leading-relaxed mb-4">
+                          <p className="font-sans text-white/72 text-[12.5px] font-light leading-relaxed mb-4">
                             {item.teaser}
                           </p>
                           <ul className="space-y-1.5">
                             {item.details.slice(0, 3).map((line, li) => (
-                              <li key={li} className="flex items-start gap-2 font-sans text-white/32 text-[11.5px] font-light leading-snug group-hover:text-white/52 transition-colors duration-300">
-                                <span className="text-[#F4B41A]/50 mt-[3px] flex-shrink-0 text-[9px] group-hover:text-[#F4B41A] transition-colors duration-300">→</span>
+                              <li key={li} className="flex items-start gap-2 font-sans text-white/58 text-[11.5px] font-light leading-snug group-hover:text-white/78 transition-colors duration-300">
+                                <span className="text-[#F4B41A]/70 mt-[3px] flex-shrink-0 text-[9px] group-hover:text-[#F4B41A] transition-colors duration-300">→</span>
                                 {line}
                               </li>
                             ))}
                           </ul>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {/* Varai / client text card — cream default, dark flip on hover */}
+                      <div className="absolute inset-0 p-7 md:p-8 flex flex-col justify-between transition-all duration-[400ms] ease-out group-hover:opacity-0 group-hover:-translate-y-4">
+                        <span className="font-sans text-[8.5px] uppercase tracking-[0.28em] font-semibold text-[#F4B41A]">
+                          {item.tag}
+                        </span>
+                        <div>
+                          <h3
+                            className="font-serif text-[#1E2342] font-semibold leading-snug mb-2.5"
+                            style={{ fontSize: 'clamp(1.02rem, 1.4vw, 1.28rem)' }}
+                          >
+                            {item.name}
+                          </h3>
+                          <p className="font-sans text-[#1E2342]/45 text-[12.5px] font-light leading-relaxed">
+                            {item.teaser}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="absolute inset-0 bg-[#0D1528] p-7 md:p-8 flex flex-col justify-between opacity-0 translate-y-5 pointer-events-none transition-all duration-[400ms] ease-out group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto">
+                        <span className="font-sans text-[8.5px] uppercase tracking-[0.28em] font-semibold text-[#F4B41A]">
+                          {item.tag}
+                        </span>
+                        <div>
+                          <h3
+                            className="font-serif text-white font-semibold leading-snug mb-4"
+                            style={{ fontSize: 'clamp(1.02rem, 1.4vw, 1.28rem)' }}
+                          >
+                            {item.name}
+                          </h3>
+                          <ul className="space-y-2 mb-5">
+                            {item.details.map((line, li) => (
+                              <li key={li} className="flex items-start gap-2 font-sans text-white/65 text-[12px] font-light leading-snug">
+                                <span className="text-[#F4B41A] mt-[3px] flex-shrink-0 text-[9px]">→</span>
+                                {line}
+                              </li>
+                            ))}
+                          </ul>
+                          {item.outcome && (
+                            <div className="font-sans text-[8.5px] uppercase tracking-[0.22em] text-[#F4B41A]/65">
+                              Outcome: {item.outcome}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </>
