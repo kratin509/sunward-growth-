@@ -355,8 +355,6 @@ const CASE_STUDIES = [
 export default function Home() {
   const [navScrolled, setNavScrolled] = useState(false);
   const [menuOpen,    setMenuOpen]    = useState(false);
-  const [founderIdx,  setFounderIdx]  = useState(0);
-  const [founderPct,  setFounderPct]  = useState(0);
 
   const [metricsRef, metricsInView] = useInView(0.25);
   const [csRef,      csDark]        = useInView(0.08);
@@ -371,21 +369,6 @@ export default function Home() {
     return () => window.removeEventListener('scroll', fn);
   }, []);
 
-  useEffect(() => {
-    const DURATION = 5000;
-    const TICK = 40;
-    let elapsed = 0;
-    const iv = setInterval(() => {
-      elapsed += TICK;
-      setFounderPct(Math.min(elapsed / DURATION, 1));
-      if (elapsed >= DURATION) {
-        elapsed = 0;
-        setFounderPct(0);
-        setFounderIdx(p => (p + 1) % FOUNDERS.length);
-      }
-    }, TICK);
-    return () => clearInterval(iv);
-  }, [founderIdx]);
 
   return (
     <>
@@ -569,122 +552,83 @@ export default function Home() {
 
         </section>
 
-        {/* ══ §TEAM  Cinematic founder spotlight ═══════════════════════ */}
+        {/* ══ §FOUNDERS — floating portrait cards ═════════════════════ */}
         <section
           id="team-band"
-          className="relative scroll-mt-[64px] bg-[#080E1F] overflow-hidden"
-          style={{ minHeight: '88vh' }}
+          className="scroll-mt-[64px] relative bg-[#0D1528] py-28 md:py-36 px-6 md:px-14 overflow-hidden"
         >
-          {/* Photo layer — both stacked, crossfade */}
-          <div className="absolute inset-0 md:right-[48%]">
-            {FOUNDERS.map((f, i) => (
-              <div
-                key={f.index}
-                className="absolute inset-0 transition-opacity duration-[900ms] ease-in-out"
-                style={{ opacity: i === founderIdx ? 1 : 0 }}
-              >
-                <img
-                  src={f.photo}
-                  alt={f.name}
-                  className="w-full h-full object-cover"
-                  style={{ objectPosition: f.photoPos }}
-                />
-                {/* cinematic dark gradient — right edge fade into info panel */}
-                <div className="absolute inset-0" style={{
-                  background: 'linear-gradient(to right, rgba(8,14,31,0.10) 0%, rgba(8,14,31,0.60) 80%, rgba(8,14,31,0.98) 100%)'
-                }} />
-                {/* Bottom vignette */}
-                <div className="absolute inset-0" style={{
-                  background: 'linear-gradient(to top, rgba(8,14,31,0.70) 0%, transparent 40%)'
-                }} />
-              </div>
-            ))}
-          </div>
+          {/* Faint radial backdrop glow */}
+          <div className="absolute inset-0 pointer-events-none" style={{
+            background: 'radial-gradient(ellipse 70% 60% at 50% 50%, rgba(244,180,26,0.04) 0%, transparent 70%)'
+          }} />
 
-          {/* Info panel — right 52% */}
-          <div className="relative md:ml-[48%] flex flex-col justify-center min-h-[88vh] px-8 md:px-14 py-20">
+          <div className="relative max-w-[1440px] mx-auto">
 
-            {/* Eyebrow */}
-            <div className="flex items-center gap-3 mb-10">
-              <span className="w-6 h-px bg-[#F4B41A]" />
-              <span className="font-sans text-[9.5px] uppercase tracking-[0.32em] text-white/40">
-                Our Team
-              </span>
-            </div>
+            {/* Two floating portrait cards */}
+            <div className="flex flex-col md:flex-row gap-8 md:gap-0 items-center md:items-end justify-center">
 
-            {/* Founder info — crossfade */}
-            <div className="relative" style={{ minHeight: '340px' }}>
               {FOUNDERS.map((f, i) => (
                 <div
                   key={f.index}
-                  className="absolute inset-0 flex flex-col justify-center transition-all duration-[700ms] ease-in-out"
-                  style={{
-                    opacity: i === founderIdx ? 1 : 0,
-                    transform: i === founderIdx ? 'translateY(0)' : 'translateY(18px)',
-                    pointerEvents: i === founderIdx ? 'auto' : 'none',
-                  }}
+                  className={`group relative w-full max-w-[320px] md:max-w-[360px] flex-shrink-0
+                    transition-all duration-500 ease-out cursor-default
+                    ${i === 0
+                      ? '-rotate-[2.5deg] hover:rotate-0 md:-mr-10 z-10 hover:z-20'
+                      : 'rotate-[2.5deg] hover:rotate-0 md:-ml-10 z-10 hover:z-20 md:mb-[-40px]'
+                    }
+                    hover:-translate-y-4 hover:shadow-[0_40px_100px_rgba(8,14,31,0.65)]`}
+                  style={{ boxShadow: '0 20px 60px rgba(8,14,31,0.50)' }}
                 >
-                  {/* Counter */}
-                  <span className="font-sans text-[11px] text-white/22 tracking-[0.18em] mb-4 font-light">
-                    {f.index} / {String(FOUNDERS.length).padStart(2, '0')}
-                  </span>
+                  {/* Card face */}
+                  <div className="relative overflow-hidden" style={{ aspectRatio: '3/4', borderRadius: '3px' }}>
 
-                  <h2
-                    className="font-serif text-white font-semibold leading-[1.08] tracking-[-0.02em] mb-3"
-                    style={{ fontSize: 'clamp(2rem, 3.2vw, 3.6rem)' }}
-                  >
-                    {f.name}
-                  </h2>
+                    {/* Photo */}
+                    <img
+                      src={f.photo}
+                      alt={f.name}
+                      className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+                      style={{ objectPosition: f.photoPos }}
+                    />
 
-                  <div className="flex items-center gap-3 mb-5">
-                    <span className="w-5 h-px bg-[#F4B41A]" />
-                    <span className="font-sans text-[#F4B41A] text-[11px] uppercase tracking-[0.22em] font-semibold">
-                      {f.role}
-                    </span>
+                    {/* Always-on dark gradient at bottom */}
+                    <div className="absolute inset-0" style={{
+                      background: 'linear-gradient(to top, rgba(8,14,31,0.96) 0%, rgba(8,14,31,0.60) 38%, rgba(8,14,31,0.10) 65%, transparent 100%)'
+                    }} />
+
+                    {/* Gold top accent line */}
+                    <div className="absolute top-0 left-0 right-0 h-[2px] bg-[#F4B41A] origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out" />
+
+                    {/* Info overlay */}
+                    <div className="absolute bottom-0 left-0 right-0 p-6">
+                      <span className="block font-sans text-[#F4B41A] text-[8.5px] uppercase tracking-[0.28em] font-semibold mb-2.5">
+                        {f.role}
+                      </span>
+                      <h3
+                        className="font-serif text-white font-semibold leading-tight mb-2"
+                        style={{ fontSize: 'clamp(1.25rem, 2vw, 1.6rem)' }}
+                      >
+                        {f.name}
+                      </h3>
+                      <p className="font-sans text-white/38 text-[9.5px] tracking-[0.12em] font-light leading-relaxed">
+                        {f.credentials}
+                      </p>
+
+                      {/* Bio — slides up on hover */}
+                      <div className="overflow-hidden transition-all duration-500 ease-out max-h-0 group-hover:max-h-[110px]">
+                        <p className="font-sans text-white/65 text-[11.5px] font-light leading-[1.75] mt-4 pr-1">
+                          {f.bio.split('.').slice(0, 2).join('.') + '.'}
+                        </p>
+                      </div>
+                    </div>
                   </div>
-
-                  <p className="font-sans text-white/38 text-[10px] uppercase tracking-[0.18em] font-light mb-7 leading-loose">
-                    {f.credentials}
-                  </p>
-
-                  <p
-                    className="font-sans text-white/68 font-light leading-[1.8] max-w-[420px]"
-                    style={{ fontSize: 'clamp(0.82rem, 1vw, 0.96rem)' }}
-                  >
-                    {f.bio}
-                  </p>
                 </div>
               ))}
             </div>
 
-            {/* Navigation dots + progress bar */}
-            <div className="mt-14 flex items-center gap-5">
-              {FOUNDERS.map((f, i) => (
-                <button
-                  key={f.index}
-                  onClick={() => { setFounderIdx(i); setFounderPct(0); }}
-                  className="group flex flex-col items-start gap-2"
-                  aria-label={`View ${f.name}`}
-                >
-                  <span className={`font-sans text-[9px] uppercase tracking-[0.2em] transition-colors duration-300 ${i === founderIdx ? 'text-white/70' : 'text-white/25'}`}>
-                    {f.name.split(' ')[0]}
-                  </span>
-                  {/* Track */}
-                  <span className="relative block w-14 h-px bg-white/15">
-                    <span
-                      className="absolute inset-y-0 left-0 bg-[#F4B41A] transition-none"
-                      style={{ width: i === founderIdx ? `${founderPct * 100}%` : i < founderIdx ? '100%' : '0%' }}
-                    />
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Decorative corner mark */}
-          <div className="absolute bottom-8 right-8 hidden md:flex items-center gap-2 opacity-20">
-            <span className="font-sans text-[8px] uppercase tracking-[0.28em] text-white">Sunward</span>
-            <span className="w-4 h-px bg-white" />
+            {/* Minimal bottom label — no "team" word */}
+            <p className="mt-16 text-center font-sans text-[9px] uppercase tracking-[0.28em] text-white/18 font-light">
+              The people behind Sunward Growth Advisory
+            </p>
           </div>
         </section>
 
