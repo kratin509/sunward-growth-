@@ -197,21 +197,26 @@ const NAV_LINKS = [
   { label: 'Our Team', href: '#team-band'    },
 ];
 
-const TEAM_BASE = [
+const FOUNDERS = [
   {
+    index: '01',
     name: 'Baljeet Gujral',
     role: 'Founder & Strategic Advisor',
-    sub: 'Harvard · Stanford · Oxford · IIM Calcutta',
-    initials: 'BG',
+    credentials: 'Harvard  ·  Stanford  ·  Oxford  ·  IIM Calcutta',
+    bio: 'With training across Harvard, Stanford, Oxford, and IIM Calcutta, Baljeet brings a rare convergence of global strategic thinking and ground-level operational precision. Over 15 years he has helped founders across India and Southeast Asia turn ambitious ideas into high-performing enterprises — navigating fundraising, scale, and entry into new markets.',
+    photo: '/baljeet-gujral.png',
+    photoPos: 'center 20%',
   },
   {
+    index: '02',
     name: 'Dr. Suraj Kumar',
     role: 'Growth Systems Thinker',
-    sub: "PhD · Management | India's Top 100 Young Leaders",
-    initials: 'SK',
+    credentials: "PhD · Management  ·  India's Top 100 Young Leaders",
+    bio: "Named among India's Top 100 Young Leaders and holding a PhD in Management, Suraj is the architect of the proprietary growth frameworks that power every Sunward engagement. He bridges academic rigour with sharp commercial instinct — building systems that don't just work in theory, but compound in practice.",
+    photo: '/dr-suraj-kumar.jpg',
+    photoPos: 'center 15%',
   },
 ];
-const MARQUEE_SET = Array(10).fill(TEAM_BASE).flat();
 
 const PORTFOLIO = [
   {
@@ -350,6 +355,8 @@ const CASE_STUDIES = [
 export default function Home() {
   const [navScrolled, setNavScrolled] = useState(false);
   const [menuOpen,    setMenuOpen]    = useState(false);
+  const [founderIdx,  setFounderIdx]  = useState(0);
+  const [founderPct,  setFounderPct]  = useState(0);
 
   const [metricsRef, metricsInView] = useInView(0.25);
   const [csRef,      csDark]        = useInView(0.08);
@@ -363,6 +370,22 @@ export default function Home() {
     window.addEventListener('scroll', fn, { passive: true });
     return () => window.removeEventListener('scroll', fn);
   }, []);
+
+  useEffect(() => {
+    const DURATION = 5000;
+    const TICK = 40;
+    let elapsed = 0;
+    const iv = setInterval(() => {
+      elapsed += TICK;
+      setFounderPct(Math.min(elapsed / DURATION, 1));
+      if (elapsed >= DURATION) {
+        elapsed = 0;
+        setFounderPct(0);
+        setFounderIdx(p => (p + 1) % FOUNDERS.length);
+      }
+    }, TICK);
+    return () => clearInterval(iv);
+  }, [founderIdx]);
 
   return (
     <>
@@ -544,29 +567,124 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Infinite founder marquee band */}
-          <div
-            id="team-band"
-            className="relative z-10 border-t border-[rgba(30,35,66,0.08)] py-9 overflow-hidden bg-[#FAF9F6]"
-          >
-            <div className="flex marquee-track" style={{ width: 'max-content' }}>
-              {[...MARQUEE_SET, ...MARQUEE_SET].map((member, i) => (
+        </section>
+
+        {/* ══ §TEAM  Cinematic founder spotlight ═══════════════════════ */}
+        <section
+          id="team-band"
+          className="relative scroll-mt-[64px] bg-[#080E1F] overflow-hidden"
+          style={{ minHeight: '88vh' }}
+        >
+          {/* Photo layer — both stacked, crossfade */}
+          <div className="absolute inset-0 md:right-[48%]">
+            {FOUNDERS.map((f, i) => (
+              <div
+                key={f.index}
+                className="absolute inset-0 transition-opacity duration-[900ms] ease-in-out"
+                style={{ opacity: i === founderIdx ? 1 : 0 }}
+              >
+                <img
+                  src={f.photo}
+                  alt={f.name}
+                  className="w-full h-full object-cover"
+                  style={{ objectPosition: f.photoPos }}
+                />
+                {/* cinematic dark gradient — right edge fade into info panel */}
+                <div className="absolute inset-0" style={{
+                  background: 'linear-gradient(to right, rgba(8,14,31,0.10) 0%, rgba(8,14,31,0.60) 80%, rgba(8,14,31,0.98) 100%)'
+                }} />
+                {/* Bottom vignette */}
+                <div className="absolute inset-0" style={{
+                  background: 'linear-gradient(to top, rgba(8,14,31,0.70) 0%, transparent 40%)'
+                }} />
+              </div>
+            ))}
+          </div>
+
+          {/* Info panel — right 52% */}
+          <div className="relative md:ml-[48%] flex flex-col justify-center min-h-[88vh] px-8 md:px-14 py-20">
+
+            {/* Eyebrow */}
+            <div className="flex items-center gap-3 mb-10">
+              <span className="w-6 h-px bg-[#F4B41A]" />
+              <span className="font-sans text-[9.5px] uppercase tracking-[0.32em] text-white/40">
+                Our Team
+              </span>
+            </div>
+
+            {/* Founder info — crossfade */}
+            <div className="relative" style={{ minHeight: '340px' }}>
+              {FOUNDERS.map((f, i) => (
                 <div
-                  key={i}
-                  className="flex-shrink-0 flex flex-col items-center px-10 cursor-default"
+                  key={f.index}
+                  className="absolute inset-0 flex flex-col justify-center transition-all duration-[700ms] ease-in-out"
+                  style={{
+                    opacity: i === founderIdx ? 1 : 0,
+                    transform: i === founderIdx ? 'translateY(0)' : 'translateY(18px)',
+                    pointerEvents: i === founderIdx ? 'auto' : 'none',
+                  }}
                 >
-                  <div className="w-[54px] h-[54px] rounded-full bg-[#1E2342] flex items-center justify-center font-serif text-[#F4B41A] text-[1.05rem] font-bold mb-3 ring-[1.5px] ring-offset-[3px] ring-offset-[#FAF9F6] ring-[rgba(30,35,66,0.12)]">
-                    {member.initials}
+                  {/* Counter */}
+                  <span className="font-sans text-[11px] text-white/22 tracking-[0.18em] mb-4 font-light">
+                    {f.index} / {String(FOUNDERS.length).padStart(2, '0')}
+                  </span>
+
+                  <h2
+                    className="font-serif text-white font-semibold leading-[1.08] tracking-[-0.02em] mb-3"
+                    style={{ fontSize: 'clamp(2rem, 3.2vw, 3.6rem)' }}
+                  >
+                    {f.name}
+                  </h2>
+
+                  <div className="flex items-center gap-3 mb-5">
+                    <span className="w-5 h-px bg-[#F4B41A]" />
+                    <span className="font-sans text-[#F4B41A] text-[11px] uppercase tracking-[0.22em] font-semibold">
+                      {f.role}
+                    </span>
                   </div>
-                  <div className="font-serif text-[#1E2342] text-[13px] font-semibold text-center whitespace-nowrap leading-tight">
-                    {member.name}
-                  </div>
-                  <div className="font-sans text-[#1E2342]/40 text-[10px] tracking-[0.05em] mt-0.5 text-center whitespace-nowrap">
-                    {member.role}
-                  </div>
+
+                  <p className="font-sans text-white/38 text-[10px] uppercase tracking-[0.18em] font-light mb-7 leading-loose">
+                    {f.credentials}
+                  </p>
+
+                  <p
+                    className="font-sans text-white/68 font-light leading-[1.8] max-w-[420px]"
+                    style={{ fontSize: 'clamp(0.82rem, 1vw, 0.96rem)' }}
+                  >
+                    {f.bio}
+                  </p>
                 </div>
               ))}
             </div>
+
+            {/* Navigation dots + progress bar */}
+            <div className="mt-14 flex items-center gap-5">
+              {FOUNDERS.map((f, i) => (
+                <button
+                  key={f.index}
+                  onClick={() => { setFounderIdx(i); setFounderPct(0); }}
+                  className="group flex flex-col items-start gap-2"
+                  aria-label={`View ${f.name}`}
+                >
+                  <span className={`font-sans text-[9px] uppercase tracking-[0.2em] transition-colors duration-300 ${i === founderIdx ? 'text-white/70' : 'text-white/25'}`}>
+                    {f.name.split(' ')[0]}
+                  </span>
+                  {/* Track */}
+                  <span className="relative block w-14 h-px bg-white/15">
+                    <span
+                      className="absolute inset-y-0 left-0 bg-[#F4B41A] transition-none"
+                      style={{ width: i === founderIdx ? `${founderPct * 100}%` : i < founderIdx ? '100%' : '0%' }}
+                    />
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Decorative corner mark */}
+          <div className="absolute bottom-8 right-8 hidden md:flex items-center gap-2 opacity-20">
+            <span className="font-sans text-[8px] uppercase tracking-[0.28em] text-white">Sunward</span>
+            <span className="w-4 h-px bg-white" />
           </div>
         </section>
 
