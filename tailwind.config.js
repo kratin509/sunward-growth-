@@ -8,7 +8,7 @@ module.exports = {
     extend: {
       fontFamily: {
         serif: ['Playfair Display', 'Georgia', 'serif'],
-        sans: ['DM Sans', 'system-ui', 'sans-serif'],
+        sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
       },
       colors: {
         brand: {
