@@ -391,7 +391,7 @@ export default function Home() {
 
       {/* ══ §1  HEADER ══════════════════════════════════════════════ */}
       <header
-        className={`fixed inset-x-0 top-0 z-40 bg-[#1E2342] transition-all duration-300 ${
+        className={`fixed inset-x-0 top-0 z-40 bg-[#080E1F] transition-all duration-300 ${
           navScrolled ? 'shadow-[0_1px_0_rgba(255,255,255,0.07)]' : ''
         }`}
       >
@@ -443,7 +443,7 @@ export default function Home() {
 
         {/* Mobile drawer */}
         <div
-          className={`md:hidden overflow-hidden transition-all duration-300 bg-[#1E2342] border-t border-white/[0.08] ${
+          className={`md:hidden overflow-hidden transition-all duration-300 bg-[#080E1F] border-t border-white/[0.08] ${
             menuOpen ? 'max-h-80' : 'max-h-0'
           }`}
         >
