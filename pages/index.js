@@ -663,13 +663,13 @@ export default function Home() {
                           >
                             {item.name}
                           </h3>
-                          <p className="font-sans text-white/72 text-[12.5px] font-light leading-relaxed mb-4">
+                          <p className="font-sans text-white/85 text-[12.5px] font-light leading-relaxed mb-4">
                             {item.teaser}
                           </p>
                           <ul className="space-y-1.5">
                             {item.details.slice(0, 3).map((line, li) => (
-                              <li key={li} className="flex items-start gap-2 font-sans text-white/58 text-[11.5px] font-light leading-snug group-hover:text-white/78 transition-colors duration-300">
-                                <span className="text-[#F4B41A]/70 mt-[3px] flex-shrink-0 text-[9px] group-hover:text-[#F4B41A] transition-colors duration-300">→</span>
+                              <li key={li} className="flex items-start gap-2 font-sans text-white/75 text-[11.5px] font-light leading-snug">
+                                <span className="text-[#F4B41A] mt-[3px] flex-shrink-0 text-[9px]">→</span>
                                 {line}
                               </li>
                             ))}
