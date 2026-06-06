@@ -217,7 +217,9 @@ const PORTFOLIO = [
   {
     tag: 'PREMIUM F&B · CASE STUDY',
     name: 'Manam Chocolates',
+    logo: '/manam-chocolates.jpeg',
     teaser: 'Running on craft, not a system — until we fixed that.',
+    blurb: "Manam is India's finest bean-to-bar chocolate brand. We helped them build a structured sales system and a store-by-store retail expansion playbook — turning exceptional craft into a scalable business.",
     details: [
       'Clarified brand positioning',
       'Built structured sales funnel',
@@ -228,7 +230,9 @@ const PORTFOLIO = [
   {
     tag: 'WELLNESS · CASE STUDY',
     name: 'Mahati Wellness',
+    logo: '/mahati-wellness.jpg',
     teaser: 'Spreading thin across segments with no clear path to traction.',
+    blurb: 'Mahati Wellness is a holistic health platform spanning yoga, nutrition, and mental wellness. We sharpened their customer targeting and built a full go-to-market strategy that drove measurable segment growth within 90 days.',
     details: [
       'Defined target customers with precision',
       'Built a complete GTM strategy',
@@ -594,54 +598,92 @@ export default function Home() {
                 >
                   <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#F4B41A] z-10 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out pointer-events-none" />
 
-                  {/* Default face */}
-                  <div className="absolute inset-0 p-8 md:p-10 flex flex-col justify-between transition-all duration-[420ms] ease-out group-hover:opacity-0 group-hover:-translate-y-4">
-                    <span className="font-sans text-[9px] uppercase tracking-[0.28em] font-semibold text-[#F4B41A]">
-                      {item.tag}
-                    </span>
-                    <div>
-                      <h3
-                        className="font-serif text-[#1E2342] font-semibold leading-snug mb-3"
-                        style={{ fontSize: 'clamp(1.08rem, 1.45vw, 1.38rem)' }}
-                      >
-                        {item.name}
-                      </h3>
-                      <p className="font-sans text-[#1E2342]/40 text-[13px] font-light leading-relaxed">
-                        {item.teaser}
-                      </p>
-                    </div>
-                  </div>
+                  {item.logo ? (
+                    <>
+                      {/* Logo card — default: centred logo on cream */}
+                      <div className="absolute inset-0 flex flex-col items-center justify-center p-8 transition-all duration-[400ms] ease-out group-hover:opacity-0 group-hover:scale-95">
+                        <img
+                          src={item.logo}
+                          alt={item.name}
+                          className="max-h-[110px] max-w-[72%] object-contain"
+                        />
+                        <span className="mt-5 font-sans text-[9px] uppercase tracking-[0.24em] font-semibold text-[#1E2342]/35">
+                          {item.tag}
+                        </span>
+                      </div>
 
-                  {/* Hover face */}
-                  <div className="absolute inset-0 bg-[#1E2342] p-8 md:p-10 flex flex-col justify-between opacity-0 translate-y-6 pointer-events-none transition-all duration-[420ms] ease-out group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto">
-                    <span className="font-sans text-[9px] uppercase tracking-[0.28em] font-semibold text-[#F4B41A]">
-                      {item.tag}
-                    </span>
-                    <div>
-                      <h3
-                        className="font-serif text-white font-semibold leading-snug mb-5"
-                        style={{ fontSize: 'clamp(1rem, 1.4vw, 1.3rem)' }}
-                      >
-                        {item.name}
-                      </h3>
-                      <ul className="space-y-2 mb-6">
-                        {item.details.map((line, li) => (
-                          <li key={li} className="flex items-start gap-2.5 font-sans text-white/55 text-[12.5px] font-light leading-snug">
-                            <span className="text-[#F4B41A] mt-[3px] flex-shrink-0 text-[10px]">→</span>
-                            {line}
-                          </li>
-                        ))}
-                      </ul>
-                      {item.outcome && (
-                        <div className="font-sans text-[9px] uppercase tracking-[0.22em] text-[#F4B41A]/65 mb-3">
-                          Outcome: {item.outcome}
+                      {/* Logo card — hover: dark card, logo + blurb + READ MORE */}
+                      <div className="absolute inset-0 bg-[#0D1528] p-8 md:p-9 flex flex-col justify-between opacity-0 translate-y-5 pointer-events-none transition-all duration-[400ms] ease-out group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto">
+                        <img
+                          src={item.logo}
+                          alt={item.name}
+                          className="h-[44px] object-contain object-left"
+                        />
+                        <div>
+                          <p className="font-sans text-white/70 text-[13px] font-light leading-relaxed mb-7">
+                            {item.blurb}
+                          </p>
+                          <a
+                            href="#case-studies"
+                            className="inline-flex items-center gap-2 font-sans text-white font-semibold text-[11px] tracking-[0.14em] uppercase border-b border-white/25 pb-px hover:border-white transition-colors duration-200"
+                          >
+                            READ MORE →
+                          </a>
                         </div>
-                      )}
-                      <span className="inline-flex items-center gap-1.5 font-sans text-[#F4B41A] text-[11px] font-semibold tracking-[0.1em] border-b border-[#F4B41A]/30 pb-px hover:border-[#F4B41A] transition-colors">
-                        READ MORE →
-                      </span>
-                    </div>
-                  </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {/* Text card — default face */}
+                      <div className="absolute inset-0 p-8 md:p-10 flex flex-col justify-between transition-all duration-[420ms] ease-out group-hover:opacity-0 group-hover:-translate-y-4">
+                        <span className="font-sans text-[9px] uppercase tracking-[0.28em] font-semibold text-[#F4B41A]">
+                          {item.tag}
+                        </span>
+                        <div>
+                          <h3
+                            className="font-serif text-[#1E2342] font-semibold leading-snug mb-3"
+                            style={{ fontSize: 'clamp(1.08rem, 1.45vw, 1.38rem)' }}
+                          >
+                            {item.name}
+                          </h3>
+                          <p className="font-sans text-[#1E2342]/40 text-[13px] font-light leading-relaxed">
+                            {item.teaser}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Text card — hover face */}
+                      <div className="absolute inset-0 bg-[#1E2342] p-8 md:p-10 flex flex-col justify-between opacity-0 translate-y-6 pointer-events-none transition-all duration-[420ms] ease-out group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto">
+                        <span className="font-sans text-[9px] uppercase tracking-[0.28em] font-semibold text-[#F4B41A]">
+                          {item.tag}
+                        </span>
+                        <div>
+                          <h3
+                            className="font-serif text-white font-semibold leading-snug mb-5"
+                            style={{ fontSize: 'clamp(1rem, 1.4vw, 1.3rem)' }}
+                          >
+                            {item.name}
+                          </h3>
+                          <ul className="space-y-2 mb-6">
+                            {item.details.map((line, li) => (
+                              <li key={li} className="flex items-start gap-2.5 font-sans text-white/55 text-[12.5px] font-light leading-snug">
+                                <span className="text-[#F4B41A] mt-[3px] flex-shrink-0 text-[10px]">→</span>
+                                {line}
+                              </li>
+                            ))}
+                          </ul>
+                          {item.outcome && (
+                            <div className="font-sans text-[9px] uppercase tracking-[0.22em] text-[#F4B41A]/65 mb-3">
+                              Outcome: {item.outcome}
+                            </div>
+                          )}
+                          <span className="inline-flex items-center gap-1.5 font-sans text-[#F4B41A] text-[11px] font-semibold tracking-[0.1em] border-b border-[#F4B41A]/30 pb-px hover:border-[#F4B41A] transition-colors">
+                            READ MORE →
+                          </span>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               ))}
             </div>
