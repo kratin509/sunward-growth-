@@ -150,12 +150,12 @@ function WaveCanvas() {
         }
         ctx.closePath();
 
-        const alpha    = Math.max(0.009, 0.076 - i * 0.0026);
-        const isGold   = i % 5 === 0 || i % 8 === 2;
+        const alpha    = Math.max(0.048, 0.28 - i * 0.009);
+        const isGold   = i % 3 === 0 || i % 7 === 2;
         ctx.strokeStyle = isGold
-          ? `rgba(244,180,26,${(alpha * 1.75).toFixed(4)})`
-          : `rgba(30,35,66,${alpha.toFixed(4)})`;
-        ctx.lineWidth  = 0.65;
+          ? `rgba(244,180,26,${(alpha * 1.65).toFixed(3)})`
+          : `rgba(30,35,66,${alpha.toFixed(3)})`;
+        ctx.lineWidth  = isGold ? 1.0 : 0.75;
         ctx.stroke();
       }
 
