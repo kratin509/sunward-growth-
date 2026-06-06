@@ -391,8 +391,8 @@ export default function Home() {
 
       {/* ══ §1  HEADER ══════════════════════════════════════════════ */}
       <header
-        className={`fixed inset-x-0 top-0 z-40 bg-[#FAF9F6] transition-all duration-300 ${
-          navScrolled ? 'shadow-[0_1px_0_rgba(30,35,66,0.08)]' : ''
+        className={`fixed inset-x-0 top-0 z-40 bg-[#1E2342] transition-all duration-300 ${
+          navScrolled ? 'shadow-[0_1px_0_rgba(255,255,255,0.07)]' : ''
         }`}
       >
         <div className="max-w-[1440px] mx-auto px-8 md:px-14 h-[64px] flex items-center justify-between">
@@ -400,7 +400,7 @@ export default function Home() {
           {/* Logo */}
           <a href="#" className="group flex items-center gap-3 select-none flex-shrink-0">
             <SunwardMark size={38} />
-            <span className="hidden sm:inline font-serif text-[15px] font-semibold text-[#1E2342] tracking-[0.18em] uppercase group-hover:text-[#F4B41A] transition-colors duration-300">
+            <span className="hidden sm:inline font-serif text-[15px] font-semibold text-white tracking-[0.18em] uppercase group-hover:text-[#F4B41A] transition-colors duration-300">
               Sunward Growth Advisory
             </span>
           </a>
@@ -411,7 +411,7 @@ export default function Home() {
               <a
                 key={label}
                 href={href}
-                className="group relative font-sans text-[12px] text-[#1E2342]/70 hover:text-[#1E2342] transition-colors duration-200 tracking-[0.04em] py-1"
+                className="group relative font-sans text-[12px] text-white/65 hover:text-white transition-colors duration-200 tracking-[0.04em] py-1"
               >
                 {label}
                 <span className="absolute bottom-0 left-0 w-full h-px bg-[#F4B41A] origin-center scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out" />
@@ -419,11 +419,11 @@ export default function Home() {
             ))}
           </nav>
 
-          {/* CTA — fills warm gold on hover */}
+          {/* CTA — gold border at rest, fills solid gold on hover */}
           <div className="flex items-center gap-4">
             <a
               href="mailto:info@sunwardgrowth.com"
-              className="group hidden md:inline-flex items-center gap-2 border border-[#F4B41A] text-[#1E2342] font-sans text-[11.5px] font-medium px-5 py-[10px] rounded-sm tracking-[0.04em] transition-all duration-250 hover:bg-[#F4B41A] hover:border-[#F4B41A]"
+              className="group hidden md:inline-flex items-center gap-2 border border-[#F4B41A] text-white font-sans text-[11.5px] font-medium px-5 py-[10px] rounded-sm tracking-[0.04em] transition-all duration-250 hover:bg-[#F4B41A] hover:text-[#1E2342]"
             >
               Book a Discovery Call
               <span className="text-[#F4B41A] group-hover:text-[#1E2342] transition-colors duration-250">↗</span>
@@ -435,15 +435,15 @@ export default function Home() {
               aria-expanded={menuOpen}
             >
               {menuOpen
-                ? <X size={20} className="text-[#1E2342]" />
-                : <Menu size={20} className="text-[#1E2342]" />}
+                ? <X size={20} className="text-white" />
+                : <Menu size={20} className="text-white" />}
             </button>
           </div>
         </div>
 
         {/* Mobile drawer */}
         <div
-          className={`md:hidden overflow-hidden transition-all duration-300 bg-[#FAF9F6] border-t border-[rgba(30,35,66,0.07)] ${
+          className={`md:hidden overflow-hidden transition-all duration-300 bg-[#1E2342] border-t border-white/[0.08] ${
             menuOpen ? 'max-h-80' : 'max-h-0'
           }`}
         >
@@ -453,7 +453,7 @@ export default function Home() {
                 key={label}
                 href={href}
                 onClick={() => setMenuOpen(false)}
-                className="font-sans text-[#1E2342]/55 hover:text-[#1E2342] text-[15px] transition-colors"
+                className="font-sans text-white/60 hover:text-white text-[15px] transition-colors"
               >
                 {label}
               </a>
@@ -461,7 +461,7 @@ export default function Home() {
             <a
               href="mailto:info@sunwardgrowth.com"
               onClick={() => setMenuOpen(false)}
-              className="mt-1 inline-flex items-center gap-2 border border-[#1E2342] text-[#1E2342] font-sans text-[13px] font-medium px-5 py-3 rounded-sm hover:bg-[#F4B41A] hover:border-[#F4B41A] transition-all"
+              className="mt-1 inline-flex items-center gap-2 border border-[#F4B41A] text-white font-sans text-[13px] font-medium px-5 py-3 rounded-sm hover:bg-[#F4B41A] hover:text-[#1E2342] transition-all"
             >
               Book a Discovery Call ↗
             </a>
