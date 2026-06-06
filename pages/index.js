@@ -398,9 +398,9 @@ export default function Home() {
         <div className="max-w-[1440px] mx-auto px-8 md:px-14 h-[64px] flex items-center justify-between">
 
           {/* Logo */}
-          <a href="#" className="group flex items-center gap-2.5 select-none flex-shrink-0">
-            <SunwardMark size={30} />
-            <span className="hidden sm:inline font-serif text-[12.5px] font-semibold text-[#1E2342] tracking-[0.18em] uppercase group-hover:text-[#F4B41A] transition-colors duration-300">
+          <a href="#" className="group flex items-center gap-3 select-none flex-shrink-0">
+            <SunwardMark size={38} />
+            <span className="hidden sm:inline font-serif text-[15px] font-semibold text-[#1E2342] tracking-[0.18em] uppercase group-hover:text-[#F4B41A] transition-colors duration-300">
               Sunward Growth Advisory
             </span>
           </a>
@@ -411,7 +411,7 @@ export default function Home() {
               <a
                 key={label}
                 href={href}
-                className="group relative font-sans text-[12px] text-[#1E2342]/48 hover:text-[#1E2342] transition-colors duration-200 tracking-[0.04em] py-1"
+                className="group relative font-sans text-[12px] text-[#1E2342]/70 hover:text-[#1E2342] transition-colors duration-200 tracking-[0.04em] py-1"
               >
                 {label}
                 <span className="absolute bottom-0 left-0 w-full h-px bg-[#F4B41A] origin-center scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out" />
@@ -423,7 +423,7 @@ export default function Home() {
           <div className="flex items-center gap-4">
             <a
               href="mailto:info@sunwardgrowth.com"
-              className="group hidden md:inline-flex items-center gap-2 border border-[#1E2342] text-[#1E2342] font-sans text-[11.5px] font-medium px-5 py-[10px] rounded-sm tracking-[0.04em] transition-all duration-250 hover:bg-[#F4B41A] hover:border-[#F4B41A]"
+              className="group hidden md:inline-flex items-center gap-2 border border-[#F4B41A] text-[#1E2342] font-sans text-[11.5px] font-medium px-5 py-[10px] rounded-sm tracking-[0.04em] transition-all duration-250 hover:bg-[#F4B41A] hover:border-[#F4B41A]"
             >
               Book a Discovery Call
               <span className="text-[#F4B41A] group-hover:text-[#1E2342] transition-colors duration-250">↗</span>
