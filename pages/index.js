@@ -555,34 +555,27 @@ export default function Home() {
         {/* ══ §FOUNDERS — floating portrait cards ═════════════════════ */}
         <section
           id="team-band"
-          className="scroll-mt-[64px] relative bg-[#0D1528] py-28 md:py-36 px-6 md:px-14 overflow-hidden"
+          className="scroll-mt-[64px] relative bg-[#FAF9F6] py-16 md:py-20 px-6 md:px-14 overflow-visible border-t border-[rgba(30,35,66,0.07)]"
         >
-          {/* Faint radial backdrop glow */}
-          <div className="absolute inset-0 pointer-events-none" style={{
-            background: 'radial-gradient(ellipse 70% 60% at 50% 50%, rgba(244,180,26,0.04) 0%, transparent 70%)'
-          }} />
-
           <div className="relative max-w-[1440px] mx-auto">
-
-            {/* Two floating portrait cards */}
             <div className="flex flex-col md:flex-row gap-8 md:gap-0 items-center md:items-end justify-center">
 
               {FOUNDERS.map((f, i) => (
                 <div
                   key={f.index}
-                  className={`group relative w-full max-w-[320px] md:max-w-[360px] flex-shrink-0
+                  className={`group relative w-full max-w-[280px] md:max-w-[310px] flex-shrink-0
                     transition-all duration-500 ease-out cursor-default
                     ${i === 0
-                      ? '-rotate-[2.5deg] hover:rotate-0 md:-mr-10 z-10 hover:z-20'
-                      : 'rotate-[2.5deg] hover:rotate-0 md:-ml-10 z-10 hover:z-20 md:mb-[-40px]'
+                      ? '-rotate-[2.5deg] hover:rotate-0 md:-mr-8 z-10 hover:z-20'
+                      : 'rotate-[2.5deg] hover:rotate-0 md:-ml-8 z-10 hover:z-20 md:mb-[-32px]'
                     }
-                    hover:-translate-y-4 hover:shadow-[0_40px_100px_rgba(8,14,31,0.65)]`}
-                  style={{ boxShadow: '0 20px 60px rgba(8,14,31,0.50)' }}
+                    hover:-translate-y-4`}
+                  style={{ boxShadow: '0 14px 48px rgba(30,35,66,0.16)', transition: 'transform 0.5s ease, box-shadow 0.5s ease, rotate 0.5s ease' }}
+                  onMouseEnter={e => e.currentTarget.style.boxShadow = '0 32px 80px rgba(30,35,66,0.28)'}
+                  onMouseLeave={e => e.currentTarget.style.boxShadow = '0 14px 48px rgba(30,35,66,0.16)'}
                 >
-                  {/* Card face */}
-                  <div className="relative overflow-hidden" style={{ aspectRatio: '3/4', borderRadius: '3px' }}>
+                  <div className="relative overflow-hidden" style={{ aspectRatio: '3/4', borderRadius: '4px' }}>
 
-                    {/* Photo */}
                     <img
                       src={f.photo}
                       alt={f.name}
@@ -590,32 +583,32 @@ export default function Home() {
                       style={{ objectPosition: f.photoPos }}
                     />
 
-                    {/* Always-on dark gradient at bottom */}
+                    {/* Stronger bottom gradient so text is always legible */}
                     <div className="absolute inset-0" style={{
-                      background: 'linear-gradient(to top, rgba(8,14,31,0.96) 0%, rgba(8,14,31,0.60) 38%, rgba(8,14,31,0.10) 65%, transparent 100%)'
+                      background: 'linear-gradient(to top, rgba(8,14,31,1) 0%, rgba(8,14,31,0.78) 30%, rgba(8,14,31,0.20) 55%, transparent 100%)'
                     }} />
 
-                    {/* Gold top accent line */}
+                    {/* Gold top line on hover */}
                     <div className="absolute top-0 left-0 right-0 h-[2px] bg-[#F4B41A] origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out" />
 
-                    {/* Info overlay */}
-                    <div className="absolute bottom-0 left-0 right-0 p-6">
-                      <span className="block font-sans text-[#F4B41A] text-[8.5px] uppercase tracking-[0.28em] font-semibold mb-2.5">
+                    {/* Text */}
+                    <div className="absolute bottom-0 left-0 right-0 p-5">
+                      <span className="block font-sans text-[#F4B41A] text-[8px] uppercase tracking-[0.28em] font-semibold mb-2">
                         {f.role}
                       </span>
                       <h3
-                        className="font-serif text-white font-semibold leading-tight mb-2"
-                        style={{ fontSize: 'clamp(1.25rem, 2vw, 1.6rem)' }}
+                        className="font-serif text-white font-semibold leading-tight mb-1.5"
+                        style={{ fontSize: 'clamp(1.1rem, 1.8vw, 1.4rem)' }}
                       >
                         {f.name}
                       </h3>
-                      <p className="font-sans text-white/38 text-[9.5px] tracking-[0.12em] font-light leading-relaxed">
+                      <p className="font-sans text-white/70 text-[9px] tracking-[0.1em] font-light leading-relaxed">
                         {f.credentials}
                       </p>
 
-                      {/* Bio — slides up on hover */}
-                      <div className="overflow-hidden transition-all duration-500 ease-out max-h-0 group-hover:max-h-[110px]">
-                        <p className="font-sans text-white/65 text-[11.5px] font-light leading-[1.75] mt-4 pr-1">
+                      {/* Bio slides up on hover */}
+                      <div className="overflow-hidden transition-all duration-500 ease-out max-h-0 group-hover:max-h-[100px]">
+                        <p className="font-sans text-white/72 text-[11px] font-light leading-[1.75] mt-3 pr-1">
                           {f.bio.split('.').slice(0, 2).join('.') + '.'}
                         </p>
                       </div>
@@ -625,8 +618,7 @@ export default function Home() {
               ))}
             </div>
 
-            {/* Minimal bottom label — no "team" word */}
-            <p className="mt-16 text-center font-sans text-[9px] uppercase tracking-[0.28em] text-white/18 font-light">
+            <p className="mt-10 text-center font-sans text-[8.5px] uppercase tracking-[0.28em] text-[#1E2342]/22 font-light">
               The people behind Sunward Growth Advisory
             </p>
           </div>
