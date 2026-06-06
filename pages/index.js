@@ -552,75 +552,61 @@ export default function Home() {
 
         </section>
 
-        {/* ══ §FOUNDERS — photo + text panel cards ════════════════════ */}
+        {/* ══ §FOUNDERS — vertical img/text cards, 2-col grid ════════ */}
         <section
           id="team-band"
-          className="scroll-mt-[64px] bg-[#FAF9F6] py-16 md:py-20 px-6 md:px-14 border-t border-[rgba(30,35,66,0.07)]"
+          className="scroll-mt-[64px] bg-[#FAF9F6] py-14 px-6 md:px-14 border-t border-[rgba(30,35,66,0.07)]"
         >
-          <div className="max-w-[860px] mx-auto space-y-5">
+          <div className="max-w-[700px] mx-auto grid grid-cols-1 sm:grid-cols-2 gap-5">
 
             {FOUNDERS.map((f, i) => (
               <div
                 key={f.index}
-                className={`group flex items-stretch cursor-default overflow-hidden rounded-[3px]
+                className="group cursor-default overflow-hidden rounded-[3px] flex flex-col
                   transition-all duration-400 ease-out
-                  hover:-translate-y-2 hover:shadow-[0_18px_60px_rgba(30,35,66,0.13)]
-                  ${i === 1 ? 'md:ml-20' : ''}`}
-                style={{ boxShadow: '0 4px 20px rgba(30,35,66,0.08)' }}
+                  hover:-translate-y-2 hover:shadow-[0_18px_56px_rgba(30,35,66,0.14)]"
+                style={{ boxShadow: '0 4px 18px rgba(30,35,66,0.09)' }}
               >
-                {/* Photo panel */}
-                <div
-                  className="relative flex-shrink-0 overflow-hidden"
-                  style={{ width: '200px', minHeight: '260px' }}
-                >
+                {/* Photo — top, portrait aspect */}
+                <div className="relative overflow-hidden" style={{ aspectRatio: '4/5' }}>
                   <img
                     src={f.photo}
                     alt={f.name}
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
+                    className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.05]"
                     style={{ objectPosition: f.photoPos }}
                   />
-                  {/* Right-edge fade so photo bleeds cleanly into text panel */}
-                  <div className="absolute inset-0" style={{
-                    background: 'linear-gradient(to right, transparent 55%, rgba(255,255,255,0.18) 100%)'
-                  }} />
+                  {/* Gold top bar on hover */}
+                  <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-[#F4B41A] origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-450 ease-out" />
                 </div>
 
-                {/* Text panel */}
-                <div className="flex-1 bg-white border border-l-0 border-[rgba(30,35,66,0.09)] px-7 py-6 flex flex-col justify-between relative overflow-hidden">
-
-                  {/* Gold left bar slides in on hover */}
+                {/* Text — bottom, tight */}
+                <div className="bg-white border border-t-0 border-[rgba(30,35,66,0.09)] px-5 py-4 flex flex-col gap-1.5 relative overflow-hidden">
+                  {/* Gold left bar on hover */}
                   <span className="absolute left-0 top-0 bottom-0 w-[3px] bg-[#F4B41A] origin-top scale-y-0 group-hover:scale-y-100 transition-transform duration-400 ease-out" />
 
-                  {/* Top: role tag */}
-                  <span className="font-sans text-[#F4B41A] text-[8px] uppercase tracking-[0.3em] font-semibold">
+                  <span className="font-sans text-[#F4B41A] text-[7.5px] uppercase tracking-[0.3em] font-semibold">
                     {f.role}
                   </span>
-
-                  {/* Middle: name + credentials */}
-                  <div>
-                    <h3
-                      className="font-serif text-[#1E2342] font-semibold leading-tight mb-2"
-                      style={{ fontSize: 'clamp(1.15rem, 1.9vw, 1.55rem)' }}
-                    >
-                      {f.name}
-                    </h3>
-                    <p className="font-sans text-[#1E2342]/52 text-[9.5px] tracking-[0.09em] font-light leading-relaxed mb-4">
-                      {f.credentials}
-                    </p>
-                    <p className="font-sans text-[#1E2342]/60 text-[12px] font-light leading-[1.8]">
-                      {f.bio.split('.').slice(0, 2).join('.') + '.'}
-                    </p>
-                  </div>
-
-                  {/* Bottom: index */}
-                  <span className="font-sans text-[8px] uppercase tracking-[0.22em] text-[#1E2342]/20">
+                  <h3
+                    className="font-serif text-[#1E2342] font-semibold leading-tight"
+                    style={{ fontSize: 'clamp(1.05rem, 1.6vw, 1.35rem)' }}
+                  >
+                    {f.name}
+                  </h3>
+                  <p className="font-sans text-[#1E2342]/48 text-[9px] tracking-[0.07em] font-light leading-relaxed">
+                    {f.credentials}
+                  </p>
+                  <p className="font-sans text-[#1E2342]/58 text-[11.5px] font-light leading-[1.75] pt-1">
+                    {f.bio.split('.').slice(0, 2).join('.') + '.'}
+                  </p>
+                  <span className="font-sans text-[7.5px] uppercase tracking-[0.22em] text-[#1E2342]/18 pt-1">
                     {f.index} / 02
                   </span>
                 </div>
               </div>
             ))}
 
-            <p className="pt-4 text-center font-sans text-[8px] uppercase tracking-[0.28em] text-[#1E2342]/22 font-light">
+            <p className="sm:col-span-2 pt-2 text-center font-sans text-[8px] uppercase tracking-[0.28em] text-[#1E2342]/22 font-light">
               The people behind Sunward Growth Advisory
             </p>
           </div>
