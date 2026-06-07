@@ -69,18 +69,13 @@ function SunwardMark({ size = 36 }) {
 }
 
 /* ─────────────────────────────────────────────── HERO CANVAS
-   Cinematic 3D Shooting Star Matrix
+   Wild 3D Shooting Star Barrage — bottom → top
 
-   Stars spawn from a glowing North Star anchor in the upper-right
-   quadrant, hurtling diagonally to the lower-left through true
-   3D perspective projection:
-       scale   = FL / (FL + Z)
-       screenX = worldX · scale + W/2
-       screenY = worldY · scale + H/2
-
-   As Z rushes toward 0 the scale climbs, the star core inflates
-   and accelerates — giving the intense zoom-through effect.
-   Animation runs continuously on load; no scroll trigger.          */
+   Stars launch from a lower-right origin, blast upward through
+   true 3D perspective projection (scale = FL/(FL+Z)) in dense
+   bursts.  As Z rushes toward 0 the star inflates and accelerates,
+   fanning across the upper-right quadrant where the North Star
+   blazes.  Completely scroll-independent.                          */
 function HeroCanvas3D() {
   const canvasRef = useRef(null);
   const rafRef    = useRef(null);
@@ -90,40 +85,55 @@ function HeroCanvas3D() {
     if (!canvas) return;
 
     /* ── constants ──────────────────────────────────────────────── */
-    const FL       = 520;   // focal length
-    const Z_SPAWN  = 1800;  // world-Z at birth  (far from viewer)
-    const Z_KILL   = -80;   // world-Z at death  (just past viewer plane)
-    const TRAIL    = 30;    // max trail positions per star
-    const SP_MIN   = 88;    // min frames between spawns (~1.5 s @ 60 fps)
-    const SP_MAX   = 118;   // max frames between spawns (~2.0 s @ 60 fps)
+    const FL      = 520;
+    const Z_SPAWN = 1800;
+    const Z_KILL  = -80;
+    const TRAIL   = 48;   // long luxurious trails
+    const SP_MIN  = 28;   // burst every ~0.5 s
+    const SP_MAX  = 52;   // burst every ~0.9 s
 
-    // North Star: upper-right quadrant (screen %)
-    const NS_XP = 0.72;
-    const NS_YP = 0.20;
-    // Exit region: lower-left (screen %)
-    const EX_XP = 0.05;
-    const EX_YP = 0.86;
+    // Launch origin: lower-right quadrant
+    const OR_XP = 0.66;
+    const OR_YP = 0.80;
+    // North Star display anchor: upper-right
+    const NS_XP = 0.74;
+    const NS_YP = 0.17;
+    // Exit fan: wide spread across upper canvas
+    const FAN_X0 = 0.03;  const FAN_X1 = 0.78;
+    const FAN_Y0 = 0.01;  const FAN_Y1 = 0.19;
+
+    /* ── orbiting sparkles fixed to North Star ──────────────────── */
+    const SPARKS = Array.from({ length: 14 }, (_, k) => ({
+      a:     (k / 14) * Math.PI * 2,
+      speed: 0.009 + Math.random() * 0.016,
+      dist:  14 + Math.random() * 38,
+      phase: Math.random() * Math.PI * 2,
+      sz:    0.6 + Math.random() * 1.5,
+    }));
 
     /* ── state ──────────────────────────────────────────────────── */
-    const S = { stars: [], tick: 0, nextSpawn: 28 };
+    const S = { stars: [], tick: 0, nextSpawn: 12 };
 
-    /* ── create one shooting star ───────────────────────────────── */
-    function spawnStar(W, H) {
-      // Anchor world coords at spawn depth
+    /* ── spawn one star ─────────────────────────────────────────── */
+    function spawnStar(W, H, isSuperStar) {
       const s0 = FL / (FL + Z_SPAWN);
-      const jx = (Math.random() - 0.5) * 72;
-      const jy = (Math.random() - 0.5) * 36;
-      const wx0 = (W * NS_XP + jx - W * 0.5) / s0;
-      const wy0 = (H * NS_YP + jy - H * 0.5) / s0;
+      const jx = (Math.random() - 0.5) * 110;
+      const jy = (Math.random() - 0.5) * 55;
+      const wx0 = (W * OR_XP + jx - W * 0.5) / s0;
+      const wy0 = (H * OR_YP + jy - H * 0.5) / s0;
 
-      // Exit world coords at kill depth
-      const sF = FL / (FL + Z_KILL);
-      const ex = (Math.random() - 0.5) * 90;
-      const ey = (Math.random() - 0.5) * 60;
-      const wxF = (W * EX_XP + ex - W * 0.5) / sF;
-      const wyF = (H * EX_YP + ey - H * 0.5) / sF;
+      const sF   = FL / (FL + Z_KILL);
+      const exitX = FAN_X0 + Math.random() * (FAN_X1 - FAN_X0);
+      const exitY = FAN_Y0 + Math.random() * (FAN_Y1 - FAN_Y0);
+      const ex   = (Math.random() - 0.5) * 80;
+      const ey   = (Math.random() - 0.5) * 50;
+      const wxF  = (W * exitX + ex - W * 0.5) / sF;
+      const wyF  = (H * exitY + ey - H * 0.5) / sF;
 
-      const life = SP_MIN + Math.floor(Math.random() * (SP_MAX - SP_MIN));
+      // Vary speed: fast (short life) vs cinematic-slow (long life)
+      const life = isSuperStar
+        ? 55 + Math.floor(Math.random() * 20)
+        : 62 + Math.floor(Math.random() * (SP_MAX - SP_MIN));
 
       return {
         wx: wx0, wy: wy0, wz: Z_SPAWN,
@@ -132,7 +142,11 @@ function HeroCanvas3D() {
         vz: (Z_KILL - Z_SPAWN) / life,
         trail: [],
         life, maxLife: life,
-        sz: 1.0 + Math.random() * 1.6,
+        // super stars are 2.5× larger with extended bloom
+        sz: isSuperStar ? 2.8 + Math.random() * 1.4 : 0.9 + Math.random() * 2.0,
+        super: !!isSuperStar,
+        // subtle colour variation: warm gold vs orange-gold
+        warm: Math.random() < 0.45,
       };
     }
 
@@ -150,6 +164,30 @@ function HeroCanvas3D() {
       ctx.closePath();
       ctx.fillStyle = `rgba(244,180,26,${a.toFixed(3)})`;
       ctx.fill();
+      ctx.restore();
+    }
+
+    /* ── lens-flare cross streaks through a point ───────────────── */
+    function lensFlare(ctx, cx, cy, len, alpha) {
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      for (let angle = 0; angle < Math.PI; angle += Math.PI / 2) {
+        const g = ctx.createLinearGradient(
+          cx + Math.cos(angle) * len, cy + Math.sin(angle) * len,
+          cx - Math.cos(angle) * len, cy - Math.sin(angle) * len,
+        );
+        g.addColorStop(0,   'rgba(244,180,26,0)');
+        g.addColorStop(0.45,'rgba(255,240,160,0.62)');
+        g.addColorStop(0.5, 'rgba(255,252,220,0.88)');
+        g.addColorStop(0.55,'rgba(255,240,160,0.62)');
+        g.addColorStop(1,   'rgba(244,180,26,0)');
+        ctx.strokeStyle = g;
+        ctx.lineWidth   = 1.1;
+        ctx.beginPath();
+        ctx.moveTo(cx + Math.cos(angle) * len, cy + Math.sin(angle) * len);
+        ctx.lineTo(cx - Math.cos(angle) * len, cy - Math.sin(angle) * len);
+        ctx.stroke();
+      }
       ctx.restore();
     }
 
@@ -176,33 +214,74 @@ function HeroCanvas3D() {
 
       S.tick++;
 
-      /* ── spawn ──────────────────────────────────────────────── */
+      /* ── spawn burst ────────────────────────────────────────── */
       if (S.tick >= S.nextSpawn) {
-        S.stars.push(spawnStar(W, H));
-        if (Math.random() < 0.22) S.stars.push(spawnStar(W, H));
+        const burst = 2 + Math.floor(Math.random() * 3);   // 2-4 stars
+        for (let b = 0; b < burst; b++) {
+          const isSuper = b === 0 && Math.random() < 0.18;
+          S.stars.push(spawnStar(W, H, isSuper));
+        }
         S.nextSpawn = S.tick + SP_MIN + Math.floor(Math.random() * (SP_MAX - SP_MIN));
       }
 
-      /* ── North Star anchor ──────────────────────────────────── */
-      const pulse = 0.5 + 0.5 * Math.sin(S.tick * 0.052);
-      const nsx   = W * NS_XP;
-      const nsy   = H * NS_YP;
-      const gR    = 20 + pulse * 14;
-      const nsG   = ctx.createRadialGradient(nsx, nsy, 0, nsx, nsy, gR);
-      nsG.addColorStop(0,    `rgba(244,180,26,${(0.14 + pulse * 0.12).toFixed(3)})`);
-      nsG.addColorStop(0.45, `rgba(244,180,26,${(0.04 + pulse * 0.04).toFixed(3)})`);
-      nsG.addColorStop(1,    'rgba(244,180,26,0)');
-      ctx.fillStyle = nsG;
+      /* ── North Star ─────────────────────────────────────────── */
+      const pulse  = 0.5 + 0.5 * Math.sin(S.tick * 0.068);
+      const pulse2 = 0.5 + 0.5 * Math.sin(S.tick * 0.041 + 1.2);
+      const nsx    = W * NS_XP;
+      const nsy    = H * NS_YP;
+
+      // Atmospheric outer halo
+      const haloR = 72 + pulse2 * 36;
+      const halo  = ctx.createRadialGradient(nsx, nsy, 0, nsx, nsy, haloR);
+      halo.addColorStop(0,   `rgba(244,180,26,${(0.10 + pulse2 * 0.07).toFixed(3)})`);
+      halo.addColorStop(0.4, `rgba(244,180,26,${(0.03 + pulse2 * 0.03).toFixed(3)})`);
+      halo.addColorStop(1,   'rgba(244,180,26,0)');
+      ctx.fillStyle = halo;
       ctx.beginPath();
-      ctx.arc(nsx, nsy, gR, 0, Math.PI * 2);
+      ctx.arc(nsx, nsy, haloR, 0, Math.PI * 2);
       ctx.fill();
-      star4pt(ctx, nsx, nsy, 6 + pulse * 3.5, 2.5 + pulse * 1.2, 0.70 + pulse * 0.26);
+
+      // Inner tight glow
+      const igR  = 26 + pulse * 12;
+      const iglo = ctx.createRadialGradient(nsx, nsy, 0, nsx, nsy, igR);
+      iglo.addColorStop(0,   `rgba(255,248,200,${(0.42 + pulse * 0.28).toFixed(3)})`);
+      iglo.addColorStop(0.35,`rgba(244,180,26,${(0.22 + pulse * 0.14).toFixed(3)})`);
+      iglo.addColorStop(1,   'rgba(244,180,26,0)');
+      ctx.fillStyle = iglo;
+      ctx.beginPath();
+      ctx.arc(nsx, nsy, igR, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Lens-flare cross
+      lensFlare(ctx, nsx, nsy, 38 + pulse * 18, 0.55 + pulse * 0.22);
+
+      // 4-point star — large and dramatic
+      star4pt(ctx, nsx, nsy, 16 + pulse * 7, 6 + pulse * 2.8, 0.85 + pulse * 0.14);
+
+      // Orbiting sparkles
+      for (const sp of SPARKS) {
+        sp.a += sp.speed;
+        const blink = 0.25 + 0.75 * Math.abs(Math.sin(S.tick * 0.09 + sp.phase));
+        const d     = sp.dist * (0.88 + 0.12 * Math.sin(S.tick * 0.05 + sp.phase));
+        const spx   = nsx + Math.cos(sp.a) * d;
+        const spy   = nsy + Math.sin(sp.a) * d;
+        // Tiny star shape for the brighter sparkles
+        if (blink > 0.7) {
+          star4pt(ctx, spx, spy, sp.sz * blink * 1.8, sp.sz * blink * 0.7,
+            (blink * 0.65).toFixed(3));
+        } else {
+          ctx.fillStyle = `rgba(244,180,26,${(blink * 0.50).toFixed(3)})`;
+          ctx.beginPath();
+          ctx.arc(spx, spy, sp.sz * blink * 0.9, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
 
       /* ── shooting stars ─────────────────────────────────────── */
       for (let i = S.stars.length - 1; i >= 0; i--) {
         const s = S.stars[i];
 
-        // Project current world pos → screen, record in trail
+        // Project + record
         const dz = FL + s.wz;
         if (dz > 1) {
           const sc = FL / dz;
@@ -210,7 +289,6 @@ function HeroCanvas3D() {
           if (s.trail.length > TRAIL) s.trail.shift();
         }
 
-        // Advance 3-D position
         s.wx += s.vx;
         s.wy += s.vy;
         s.wz += s.vz;
@@ -218,52 +296,62 @@ function HeroCanvas3D() {
 
         if (s.life <= 0 || s.wz < Z_KILL) { S.stars.splice(i, 1); continue; }
 
-        const lr   = s.life / s.maxLife;   // 1 → 0 as star ages
+        const lr   = s.life / s.maxLife;
         const tLen = s.trail.length;
         if (tLen < 2) continue;
 
-        /* ── tapered golden trail ───────────────────────────── */
+        const r1 = s.warm ? 255 : 244;
+        const g1 = s.warm ? 172 : 180;
+        const b1 = s.warm ? 8   : 26;
+
+        /* ── tapered trail ──────────────────────────────────── */
         for (let t = 1; t < tLen; t++) {
-          const [ax, ay]       = s.trail[t - 1];
-          const [bx, by, bsc]  = s.trail[t];
-          const p = t / tLen;  // 0 = tail end → 1 = head
+          const [ax, ay]      = s.trail[t - 1];
+          const [bx, by, bsc] = s.trail[t];
+          const p = t / tLen;   // 0=tail → 1=head
 
-          // Opacity: transparent at tail, bright at head
-          const aA = p * p * lr * 0.68;
-          const bA = (p + 0.10) * lr * 0.94;
+          const aA = p * p * lr * (s.super ? 0.80 : 0.70);
+          const bA = (p + 0.08) * lr * (s.super ? 0.98 : 0.94);
 
-          const g = ctx.createLinearGradient(ax, ay, bx, by);
-          g.addColorStop(0, `rgba(244,180,26,${Math.min(1, aA).toFixed(3)})`);
-          g.addColorStop(1, `rgba(234,179,8,${Math.min(1, bA).toFixed(3)})`);
-          ctx.strokeStyle = g;
-
-          // Width scales with perspective (wider as Z shrinks) and tapers from tail→head
-          ctx.lineWidth = Math.max(
+          const gl = ctx.createLinearGradient(ax, ay, bx, by);
+          gl.addColorStop(0, `rgba(${r1},${g1},${b1},${Math.min(1, aA).toFixed(3)})`);
+          gl.addColorStop(1, `rgba(234,179,8,${Math.min(1, bA).toFixed(3)})`);
+          ctx.strokeStyle = gl;
+          ctx.lineWidth   = Math.max(
             0.2,
-            Math.min((0.4 + p * s.sz * 2.6) * (0.18 + bsc * 2.4), 6.5),
+            Math.min((0.5 + p * s.sz * 3.2) * (0.14 + bsc * 3.0), s.super ? 11 : 7.5),
           );
-
           ctx.beginPath();
           ctx.moveTo(ax, ay);
           ctx.lineTo(bx, by);
           ctx.stroke();
         }
 
-        /* ── head glow + solid core ─────────────────────────── */
+        /* ── head bloom ─────────────────────────────────────── */
         const [hx, hy, hsc] = s.trail[tLen - 1];
-        const cR  = Math.max(0.5, s.sz * hsc * 2.6 * lr);
-        const hgR = cR * 4.8;
+        const cR    = Math.max(0.6, s.sz * hsc * (s.super ? 4.2 : 3.0) * lr);
+        const bloomR = cR * (s.super ? 6.5 : 5.2);
 
-        const hg = ctx.createRadialGradient(hx, hy, 0, hx, hy, hgR);
-        hg.addColorStop(0,    `rgba(255,252,200,${(lr * 0.96).toFixed(3)})`);
-        hg.addColorStop(0.30, `rgba(244,180,26,${(lr * 0.60).toFixed(3)})`);
-        hg.addColorStop(1,    'rgba(244,180,26,0)');
-        ctx.fillStyle = hg;
-        ctx.beginPath();
-        ctx.arc(hx, hy, hgR, 0, Math.PI * 2);
-        ctx.fill();
+        if (bloomR > 0.5) {
+          // Outer diffuse bloom
+          const bloom = ctx.createRadialGradient(hx, hy, 0, hx, hy, bloomR);
+          bloom.addColorStop(0,    `rgba(255,255,230,${(lr * (s.super ? 1.0 : 0.97)).toFixed(3)})`);
+          bloom.addColorStop(0.20, `rgba(255,220,100,${(lr * 0.75).toFixed(3)})`);
+          bloom.addColorStop(0.50, `rgba(244,180,26,${(lr * 0.40).toFixed(3)})`);
+          bloom.addColorStop(1,    'rgba(244,180,26,0)');
+          ctx.fillStyle = bloom;
+          ctx.beginPath();
+          ctx.arc(hx, hy, bloomR, 0, Math.PI * 2);
+          ctx.fill();
 
-        ctx.fillStyle = `rgba(255,252,200,${(lr * 0.92).toFixed(3)})`;
+          // Super-stars get a lens-flare burst at the head
+          if (s.super && lr > 0.25) {
+            lensFlare(ctx, hx, hy, bloomR * 0.85, lr * 0.50);
+          }
+        }
+
+        // Solid white-hot core
+        ctx.fillStyle = `rgba(255,255,240,${(lr * 0.96).toFixed(3)})`;
         ctx.beginPath();
         ctx.arc(hx, hy, Math.max(0.4, cR * 0.55), 0, Math.PI * 2);
         ctx.fill();
