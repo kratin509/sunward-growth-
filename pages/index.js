@@ -1363,8 +1363,8 @@ export default function Home() {
             <div className="max-w-[1440px] mx-auto">
 
               {/* Quote */}
-              <div className="flex items-start gap-3 mb-10">
-                <span className="w-6 h-px bg-[#F4B41A] mt-4 flex-shrink-0" />
+              <div className="flex flex-col items-center gap-3 mb-12 text-center">
+                <span className="w-8 h-px bg-[#F4B41A]" />
                 <p
                   className="font-serif italic font-light leading-snug"
                   style={{ fontSize: 'clamp(1.3rem, 2.5vw, 2.2rem)', color: 'rgba(255,255,255,0.72)' }}
@@ -1373,14 +1373,14 @@ export default function Home() {
                 </p>
               </div>
 
-              {/* Stats — full width, no constraint */}
-              <div className="grid grid-cols-3 w-full border-t border-white/[0.07] pt-8">
+              {/* Stats */}
+              <div className="grid grid-cols-3 w-full border-t border-white/[0.07] pt-10">
                 {[
                   { n: yearsCount, s: '+', label: 'Years of Experience'    },
                   { n: contCount,  s: '+', label: 'Continents'              },
                   { n: orgsCount,  s: '+', label: 'Organisations Supported' },
                 ].map(({ n, s, label }, i) => (
-                  <div key={label} className={`py-4 ${i !== 0 ? 'pl-10 md:pl-16 border-l border-white/[0.07]' : ''}`}>
+                  <div key={label} className={`py-4 flex flex-col items-center text-center ${i !== 0 ? 'border-l border-white/[0.07]' : ''}`}>
                     <div
                       className="font-serif font-bold text-[#F4B41A] tabular-nums leading-none"
                       style={{ fontSize: 'clamp(3rem, 7vw, 7.5rem)' }}
