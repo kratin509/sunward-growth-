@@ -914,33 +914,40 @@ export default function Home() {
         </section>
 
         {/* ══ §6  METRICS + FOOTER ════════════════════════════════════ */}
-        <section className="bg-[#1E2342]">
+        <section className="bg-[#0D1528]">
 
           <div
             ref={metricsRef}
-            className="px-6 md:px-14 xl:px-20 pt-20 pb-16 border-b border-white/[0.06]"
+            className="px-6 md:px-14 xl:px-20 pt-12 pb-10 border-b border-white/[0.07]"
           >
             <div className="max-w-[1440px] mx-auto">
-              <p
-                className="font-serif italic font-light text-white/[0.062] select-none leading-none mb-14"
-                style={{ fontSize: 'clamp(1.9rem, 4.5vw, 4.2rem)' }}
-              >
-                "Never build without direction."
-              </p>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-10 md:gap-20">
+
+              {/* Quote */}
+              <div className="flex items-start gap-3 mb-10">
+                <span className="w-6 h-px bg-[#F4B41A] mt-4 flex-shrink-0" />
+                <p
+                  className="font-serif italic font-light leading-snug"
+                  style={{ fontSize: 'clamp(1.3rem, 2.5vw, 2.2rem)', color: 'rgba(255,255,255,0.72)' }}
+                >
+                  "Never build without direction."
+                </p>
+              </div>
+
+              {/* Stats */}
+              <div className="grid grid-cols-3 gap-8 md:gap-16 max-w-2xl">
                 {[
                   { n: yearsCount, s: '+', label: 'Years of Experience'    },
                   { n: contCount,  s: '+', label: 'Continents'              },
                   { n: orgsCount,  s: '+', label: 'Organisations Supported' },
                 ].map(({ n, s, label }) => (
-                  <div key={label}>
+                  <div key={label} className="group">
                     <div
                       className="font-serif font-bold text-[#F4B41A] tabular-nums leading-none"
-                      style={{ fontSize: 'clamp(3.2rem, 6.5vw, 6.5rem)' }}
+                      style={{ fontSize: 'clamp(2.4rem, 4.5vw, 4.8rem)' }}
                     >
                       {n}{s}
                     </div>
-                    <div className="font-sans text-[10px] uppercase tracking-[0.22em] text-white/30 mt-3">
+                    <div className="font-sans text-[9px] uppercase tracking-[0.22em] mt-2" style={{ color: 'rgba(255,255,255,0.45)' }}>
                       {label}
                     </div>
                   </div>
