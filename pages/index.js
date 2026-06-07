@@ -69,13 +69,10 @@ function SunwardMark({ size = 36 }) {
 }
 
 /* ─────────────────────────────────────────────── HERO CANVAS
-   Wild 3D Shooting Star Barrage — bottom → top
-
-   Stars launch from a lower-right origin, blast upward through
-   true 3D perspective projection (scale = FL/(FL+Z)) in dense
-   bursts.  As Z rushes toward 0 the star inflates and accelerates,
-   fanning across the upper-right quadrant where the North Star
-   blazes.  Completely scroll-independent.                          */
+   NorthStar Warp Engine v3 — pool of 18 gold 4-point stars
+   continuously launching bottom-right → upper-left through
+   true 3D perspective (scale = FL/(FL+Z)).
+   Pre-seeded at load, zero scroll dependency.                      */
 function HeroCanvas3D() {
   const canvasRef = useRef(null);
   const rafRef    = useRef(null);
@@ -84,124 +81,87 @@ function HeroCanvas3D() {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    /* ── constants ──────────────────────────────────────────────── */
-    const FL      = 520;
-    const Z_SPAWN = 750;   // close start → visible from frame 1
-    const Z_KILL  = -220;  // zoom well past the viewer plane
-    const TRAIL   = 44;
-    const SP_MIN  = 28;
-    const SP_MAX  = 52;
+    const FL     = 480;
+    const POOL   = 18;
+    const TRAIL  = 25;
+    const Z_FAR  = 820;
+    const Z_KILL = -100;
 
-    // Launch origin: lower-right quadrant
-    const OR_XP = 0.66;
-    const OR_YP = 0.80;
-    // North Star display anchor: upper-right
-    const NS_XP = 0.74;
-    const NS_YP = 0.17;
-    // Exit fan: wide spread across upper canvas
-    const FAN_X0 = 0.03;  const FAN_X1 = 0.78;
-    const FAN_Y0 = 0.01;  const FAN_Y1 = 0.19;
+    const LX0 = 0.46, LX1 = 0.96;
+    const LY0 = 0.74, LY1 = 1.00;
+    const EX0 = 0.00, EX1 = 0.40;
+    const EY0 = -0.12, EY1 = 0.03;
 
-    /* ── orbiting sparkles fixed to North Star ──────────────────── */
-    const SPARKS = Array.from({ length: 14 }, (_, k) => ({
-      a:     (k / 14) * Math.PI * 2,
-      speed: 0.009 + Math.random() * 0.016,
-      dist:  14 + Math.random() * 38,
-      phase: Math.random() * Math.PI * 2,
-      sz:    0.6 + Math.random() * 1.5,
-    }));
+    const pool = [];
+    let W0 = 0, H0 = 0;
 
-    /* ── state ──────────────────────────────────────────────────── */
-    const S = { stars: [], tick: 0, nextSpawn: 12 };
-
-    /* ── spawn one star ─────────────────────────────────────────── */
-    function spawnStar(W, H, isSuperStar) {
-      const s0 = FL / (FL + Z_SPAWN);
-      const jx = (Math.random() - 0.5) * 110;
-      const jy = (Math.random() - 0.5) * 55;
-      const wx0 = (W * OR_XP + jx - W * 0.5) / s0;
-      const wy0 = (H * OR_YP + jy - H * 0.5) / s0;
-
-      const sF   = FL / (FL + Z_KILL);
-      const exitX = FAN_X0 + Math.random() * (FAN_X1 - FAN_X0);
-      const exitY = FAN_Y0 + Math.random() * (FAN_Y1 - FAN_Y0);
-      const ex   = (Math.random() - 0.5) * 80;
-      const ey   = (Math.random() - 0.5) * 50;
-      const wxF  = (W * exitX + ex - W * 0.5) / sF;
-      const wyF  = (H * exitY + ey - H * 0.5) / sF;
-
-      const life = isSuperStar
-        ? 48 + Math.floor(Math.random() * 18)
-        : 52 + Math.floor(Math.random() * 22);
-
+    function makeStar(W, H, ageOffset) {
+      const z   = Z_FAR * (0.30 + Math.random() * 0.70);
+      const s0  = FL / (FL + z);
+      const spx = W * (LX0 + Math.random() * (LX1 - LX0));
+      const spy = H * (LY0 + Math.random() * (LY1 - LY0));
+      const wx0 = (spx - W * 0.5) / s0;
+      const wy0 = (spy - H * 0.5) / s0;
+      const sF  = FL / (FL + Z_KILL);
+      const epx = W * (EX0 + Math.random() * (EX1 - EX0));
+      const epy = H * (EY0 + Math.random() * (EY1 - EY0));
+      const wxF = (epx - W * 0.5) / sF;
+      const wyF = (epy - H * 0.5) / sF;
+      const maxLife = 68 + Math.floor(Math.random() * 38);
+      const aged    = Math.floor((ageOffset || 0) * maxLife);
       return {
-        wx: wx0, wy: wy0, wz: Z_SPAWN,
-        vx: (wxF - wx0) / life,
-        vy: (wyF - wy0) / life,
-        vz: (Z_KILL - Z_SPAWN) / life,
-        trail: [],
-        life, maxLife: life,
-        sz: isSuperStar ? 4.0 + Math.random() * 2.2 : 2.2 + Math.random() * 2.8,
-        super: !!isSuperStar,
-        warm: Math.random() < 0.45,
+        wx: wx0 + (wxF - wx0) * aged / maxLife,
+        wy: wy0 + (wyF - wy0) * aged / maxLife,
+        wz: z   + (Z_KILL - z) * aged / maxLife,
+        vx: (wxF - wx0)  / maxLife,
+        vy: (wyF - wy0)  / maxLife,
+        vz: (Z_KILL - z) / maxLife,
+        trail: [], life: maxLife - aged, maxLife,
+        sz:  9 + Math.random() * 13,
+        hue: Math.random() < 0.55,
       };
     }
 
-    /* ── 4-point star ───────────────────────────────────────────── */
-    function star4pt(ctx, cx, cy, R, r, a) {
-      ctx.save();
-      ctx.translate(cx, cy);
+    function draw4pt(ctx, cx, cy, R, alpha, hue) {
+      if (R < 0.5) return;
+      const r   = R * 0.28;
+      const col = hue ? '244,180,26' : '234,179,8';
+      const gr  = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * 3.8);
+      gr.addColorStop(0,    `rgba(${col},${(alpha * 0.32).toFixed(3)})`);
+      gr.addColorStop(0.45, `rgba(${col},${(alpha * 0.11).toFixed(3)})`);
+      gr.addColorStop(1,    `rgba(${col},0)`);
+      ctx.fillStyle = gr;
+      ctx.beginPath();
+      ctx.arc(cx, cy, R * 3.8, 0, Math.PI * 2);
+      ctx.fill();
       ctx.beginPath();
       for (let i = 0; i < 8; i++) {
-        const θ = i * Math.PI / 4 - Math.PI / 2;
+        const θ = i * Math.PI * 0.25;
         const ρ = i % 2 === 0 ? R : r;
-        if (i === 0) ctx.moveTo(Math.cos(θ) * ρ, Math.sin(θ) * ρ);
-        else         ctx.lineTo(Math.cos(θ) * ρ, Math.sin(θ) * ρ);
+        const x = cx + Math.cos(θ) * ρ;
+        const y = cy + Math.sin(θ) * ρ;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
       }
       ctx.closePath();
-      ctx.fillStyle = `rgba(244,180,26,${a.toFixed(3)})`;
+      ctx.fillStyle = `rgba(${col},${alpha.toFixed(3)})`;
       ctx.fill();
-      ctx.restore();
     }
 
-    /* ── lens-flare cross streaks through a point ───────────────── */
-    function lensFlare(ctx, cx, cy, len, alpha) {
-      ctx.save();
-      ctx.globalAlpha = alpha;
-      for (let angle = 0; angle < Math.PI; angle += Math.PI / 2) {
-        const g = ctx.createLinearGradient(
-          cx + Math.cos(angle) * len, cy + Math.sin(angle) * len,
-          cx - Math.cos(angle) * len, cy - Math.sin(angle) * len,
-        );
-        g.addColorStop(0,   'rgba(244,180,26,0)');
-        g.addColorStop(0.45,'rgba(255,240,160,0.62)');
-        g.addColorStop(0.5, 'rgba(255,252,220,0.88)');
-        g.addColorStop(0.55,'rgba(255,240,160,0.62)');
-        g.addColorStop(1,   'rgba(244,180,26,0)');
-        ctx.strokeStyle = g;
-        ctx.lineWidth   = 1.1;
-        ctx.beginPath();
-        ctx.moveTo(cx + Math.cos(angle) * len, cy + Math.sin(angle) * len);
-        ctx.lineTo(cx - Math.cos(angle) * len, cy - Math.sin(angle) * len);
-        ctx.stroke();
-      }
-      ctx.restore();
-    }
-
-    /* ── render loop ────────────────────────────────────────────── */
     function frame() {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const W   = canvas.clientWidth;
       const H   = canvas.clientHeight;
       if (!W || !H) { rafRef.current = requestAnimationFrame(frame); return; }
-
       const cW = Math.round(W * dpr);
       const cH = Math.round(H * dpr);
       if (canvas.width !== cW || canvas.height !== cH) {
-        canvas.width  = cW;
-        canvas.height = cH;
+        canvas.width = cW; canvas.height = cH;
       }
-
+      if (pool.length === 0 || W !== W0 || H !== H0) {
+        pool.length = 0;
+        for (let i = 0; i < POOL; i++) pool.push(makeStar(W, H, Math.random()));
+        W0 = W; H0 = H;
+      }
       const ctx = canvas.getContext('2d');
       ctx.save();
       ctx.scale(dpr, dpr);
@@ -209,155 +169,38 @@ function HeroCanvas3D() {
       ctx.lineCap  = 'round';
       ctx.lineJoin = 'round';
 
-      S.tick++;
-
-      /* ── spawn burst ────────────────────────────────────────── */
-      if (S.tick >= S.nextSpawn) {
-        const burst = 2 + Math.floor(Math.random() * 3);   // 2-4 stars
-        for (let b = 0; b < burst; b++) {
-          const isSuper = b === 0 && Math.random() < 0.18;
-          S.stars.push(spawnStar(W, H, isSuper));
-        }
-        S.nextSpawn = S.tick + SP_MIN + Math.floor(Math.random() * (SP_MAX - SP_MIN));
-      }
-
-      /* ── North Star ─────────────────────────────────────────── */
-      const pulse  = 0.5 + 0.5 * Math.sin(S.tick * 0.068);
-      const pulse2 = 0.5 + 0.5 * Math.sin(S.tick * 0.041 + 1.2);
-      const nsx    = W * NS_XP;
-      const nsy    = H * NS_YP;
-
-      // Atmospheric outer halo
-      const haloR = 72 + pulse2 * 36;
-      const halo  = ctx.createRadialGradient(nsx, nsy, 0, nsx, nsy, haloR);
-      halo.addColorStop(0,   `rgba(244,180,26,${(0.10 + pulse2 * 0.07).toFixed(3)})`);
-      halo.addColorStop(0.4, `rgba(244,180,26,${(0.03 + pulse2 * 0.03).toFixed(3)})`);
-      halo.addColorStop(1,   'rgba(244,180,26,0)');
-      ctx.fillStyle = halo;
-      ctx.beginPath();
-      ctx.arc(nsx, nsy, haloR, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Inner tight glow
-      const igR  = 26 + pulse * 12;
-      const iglo = ctx.createRadialGradient(nsx, nsy, 0, nsx, nsy, igR);
-      iglo.addColorStop(0,   `rgba(255,248,200,${(0.42 + pulse * 0.28).toFixed(3)})`);
-      iglo.addColorStop(0.35,`rgba(244,180,26,${(0.22 + pulse * 0.14).toFixed(3)})`);
-      iglo.addColorStop(1,   'rgba(244,180,26,0)');
-      ctx.fillStyle = iglo;
-      ctx.beginPath();
-      ctx.arc(nsx, nsy, igR, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Lens-flare cross
-      lensFlare(ctx, nsx, nsy, 38 + pulse * 18, 0.55 + pulse * 0.22);
-
-      // 4-point star — large and dramatic
-      star4pt(ctx, nsx, nsy, 16 + pulse * 7, 6 + pulse * 2.8, 0.85 + pulse * 0.14);
-
-      // Orbiting sparkles
-      for (const sp of SPARKS) {
-        sp.a += sp.speed;
-        const blink = 0.25 + 0.75 * Math.abs(Math.sin(S.tick * 0.09 + sp.phase));
-        const d     = sp.dist * (0.88 + 0.12 * Math.sin(S.tick * 0.05 + sp.phase));
-        const spx   = nsx + Math.cos(sp.a) * d;
-        const spy   = nsy + Math.sin(sp.a) * d;
-        // Tiny star shape for the brighter sparkles
-        if (blink > 0.7) {
-          star4pt(ctx, spx, spy, sp.sz * blink * 1.8, sp.sz * blink * 0.7,
-            (blink * 0.65).toFixed(3));
-        } else {
-          ctx.fillStyle = `rgba(244,180,26,${(blink * 0.50).toFixed(3)})`;
-          ctx.beginPath();
-          ctx.arc(spx, spy, sp.sz * blink * 0.9, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      }
-
-      /* ── shooting stars ─────────────────────────────────────── */
-      for (let i = S.stars.length - 1; i >= 0; i--) {
-        const s = S.stars[i];
-
-        // Project + record
+      for (let i = 0; i < pool.length; i++) {
+        const s  = pool[i];
         const dz = FL + s.wz;
         if (dz > 1) {
           const sc = FL / dz;
           s.trail.push([s.wx * sc + W * 0.5, s.wy * sc + H * 0.5, sc]);
           if (s.trail.length > TRAIL) s.trail.shift();
         }
-
-        s.wx += s.vx;
-        s.wy += s.vy;
-        s.wz += s.vz;
-        s.life--;
-
-        if (s.life <= 0 || s.wz < Z_KILL) { S.stars.splice(i, 1); continue; }
-
-        // bri stays 1.0 throughout flight, only fades in last 12% of frames.
-        // This is the key fix: previously lr (life ratio) went 1→0, making stars
-        // brightest when tiny (far) and dimmest when large (close) — completely
-        // cancelling the perspective zoom effect.
-        const pctLeft = s.life / s.maxLife;
-        const bri = pctLeft > 0.12 ? 1.0 : pctLeft / 0.12;
-
+        s.wx += s.vx; s.wy += s.vy; s.wz += s.vz; s.life--;
+        if (s.life <= 0 || s.wz < Z_KILL) { pool[i] = makeStar(W, H, 0); continue; }
+        const pct = s.life / s.maxLife;
+        const bri = pct > 0.92 ? (1 - pct) / 0.08
+                  : pct > 0.14 ? 1.0
+                  : pct / 0.14;
         const tLen = s.trail.length;
         if (tLen < 2) continue;
-
-        const r1 = s.warm ? 255 : 244;
-        const g1 = s.warm ? 165 : 175;
-        const b1 = s.warm ? 8   : 20;
-
-        /* ── tapered trail ──────────────────────────────────── */
         for (let t = 1; t < tLen; t++) {
           const [ax, ay]      = s.trail[t - 1];
           const [bx, by, bsc] = s.trail[t];
-          const p = t / tLen;   // 0=tail → 1=head
-
-          const aA = p * p * 0.75 * bri;
-          const bA = (p + 0.08) * 0.98 * bri;
-
-          const gl = ctx.createLinearGradient(ax, ay, bx, by);
-          gl.addColorStop(0, `rgba(${r1},${g1},${b1},${Math.min(1, aA).toFixed(3)})`);
-          gl.addColorStop(1, `rgba(234,160,8,${Math.min(1, bA).toFixed(3)})`);
+          const p    = t / tLen;
+          const segA = Math.pow(p, 1.6) * bri * 0.88;
+          const col  = s.hue ? '244,180,26' : '234,179,8';
+          const gl   = ctx.createLinearGradient(ax, ay, bx, by);
+          gl.addColorStop(0, `rgba(${col},0)`);
+          gl.addColorStop(1, `rgba(${col},${Math.min(1, segA).toFixed(3)})`);
           ctx.strokeStyle = gl;
-          ctx.lineWidth   = Math.max(
-            0.3,
-            Math.min((0.5 + p * s.sz * 3.5) * (0.12 + bsc * 3.2), s.super ? 13 : 9),
-          );
-          ctx.beginPath();
-          ctx.moveTo(ax, ay);
-          ctx.lineTo(bx, by);
-          ctx.stroke();
+          ctx.lineWidth   = Math.max(0.3, Math.pow(p, 0.65) * s.sz * bsc * 1.75);
+          ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();
         }
-
-        /* ── head bloom — gold/amber so it pops on light bg ── */
         const [hx, hy, hsc] = s.trail[tLen - 1];
-        const cR     = Math.max(1.0, s.sz * hsc * (s.super ? 4.5 : 3.4) * bri);
-        const bloomR = cR * (s.super ? 7.0 : 5.8);
-
-        if (bloomR > 0.8) {
-          const bloom = ctx.createRadialGradient(hx, hy, 0, hx, hy, bloomR);
-          bloom.addColorStop(0,    `rgba(255,210,40,${bri.toFixed(3)})`);
-          bloom.addColorStop(0.22, `rgba(244,165,10,${(bri * 0.80).toFixed(3)})`);
-          bloom.addColorStop(0.55, `rgba(234,130,0,${(bri * 0.42).toFixed(3)})`);
-          bloom.addColorStop(1,    'rgba(200,100,0,0)');
-          ctx.fillStyle = bloom;
-          ctx.beginPath();
-          ctx.arc(hx, hy, bloomR, 0, Math.PI * 2);
-          ctx.fill();
-
-          if (s.super && bri > 0.30) {
-            lensFlare(ctx, hx, hy, bloomR * 0.90, bri * 0.55);
-          }
-        }
-
-        // Bright gold core — visible against #FAF9F6
-        ctx.fillStyle = `rgba(255,220,60,${bri.toFixed(3)})`;
-        ctx.beginPath();
-        ctx.arc(hx, hy, Math.max(0.6, cR * 0.60), 0, Math.PI * 2);
-        ctx.fill();
+        draw4pt(ctx, hx, hy, Math.max(0.8, s.sz * hsc), bri, s.hue);
       }
-
       ctx.restore();
       rafRef.current = requestAnimationFrame(frame);
     }
@@ -1029,17 +872,16 @@ export default function Home() {
             {/* Full-span 3D canvas — absolute, pointer-events:none */}
             <HeroCanvas3D />
 
-            {/* Editorial text — center-aligned, Peak XV scale */}
+            {/* Editorial text — middle-left balanced, Peak XV scale */}
             <div className="relative z-10 w-full max-w-[1440px] mx-auto px-8 md:px-14 xl:px-20 pt-[64px]">
-              <div className="flex flex-col items-center text-center mx-auto max-w-[320px] md:max-w-[700px]">
+              <div className="flex flex-col items-start text-left max-w-[320px] md:max-w-[600px]">
 
                 {/* Eyebrow */}
-                <div className="flex items-center justify-center gap-4 mb-9">
+                <div className="flex items-center gap-4 mb-9">
                   <span className="w-8 h-px bg-[#F4B41A]" />
                   <span className="font-sans text-[10px] uppercase tracking-[0.32em] text-[#0B0D10]/40">
                     Growth Advisory · Est. 2009
                   </span>
-                  <span className="w-8 h-px bg-[#F4B41A]" />
                 </div>
 
                 {/* Headline — large editorial scale */}
@@ -1065,7 +907,7 @@ export default function Home() {
                 </p>
 
                 {/* CTA pair */}
-                <div className="flex flex-col sm:flex-row items-center gap-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                   <a
                     href="mailto:info@sunwardgrowth.com"
                     className="inline-flex items-center gap-2.5 bg-[#0B0D10] text-[#FAF9F6] font-sans text-[12px] font-medium tracking-[0.05em] px-7 py-[13px] rounded-sm hover:bg-[#F4B41A] hover:text-[#0B0D10] hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(244,180,26,0.30)] transition-all duration-300"
