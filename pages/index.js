@@ -1063,7 +1063,7 @@ export default function Home() {
         </section>
 
         {/* ══ §6  METRICS + FOOTER ════════════════════════════════════ */}
-        <section className="bg-[#0B0D10]">
+        <section className="bg-[#1A2540]">
 
           <div
             ref={metricsRef}
