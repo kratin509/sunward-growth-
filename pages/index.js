@@ -927,19 +927,19 @@ export default function Home() {
         {/* ══ §4  MANIFESTO ════════════════════════════════════════════ */}
         <section
           id="manifesto"
-          className="scroll-mt-[64px] bg-[#F9F8F5] px-6 md:px-14 xl:px-20 py-28 border-t border-[rgba(11,13,16,0.08)]"
+          className="scroll-mt-[64px] bg-[#1A2540] px-6 md:px-14 xl:px-20 py-28 border-t border-white/[0.08]"
         >
           <div className="max-w-[1440px] mx-auto grid md:grid-cols-[2fr_3fr] gap-20 md:gap-36 items-center">
 
             <blockquote
-              className="font-serif italic font-light text-[#0B0D10] leading-[1.42] pl-8 border-l-[2px] border-[#F4B41A]"
+              className="font-serif italic font-light text-white leading-[1.42] pl-8 border-l-[2px] border-[#F4B41A]"
               style={{ fontSize: 'clamp(1.45rem, 2.6vw, 2.5rem)' }}
             >
               "Great products deserve great business systems."
             </blockquote>
 
-            <div className="space-y-6 font-sans font-light text-[#0B0D10]/54 text-[15px] leading-[1.92]">
-              <p className="text-[#0B0D10] font-normal" style={{ fontSize: 'clamp(1rem, 1.2vw, 1.08rem)' }}>
+            <div className="space-y-6 font-sans font-light text-white/70 text-[15px] leading-[1.92]">
+              <p className="text-white font-normal" style={{ fontSize: 'clamp(1rem, 1.2vw, 1.08rem)' }}>
                 We don't just advise. We build alongside you.
               </p>
               <p>
