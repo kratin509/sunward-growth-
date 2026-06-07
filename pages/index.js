@@ -86,11 +86,11 @@ function HeroCanvas3D() {
 
     /* ── constants ──────────────────────────────────────────────── */
     const FL      = 520;
-    const Z_SPAWN = 1800;
-    const Z_KILL  = -80;
-    const TRAIL   = 48;   // long luxurious trails
-    const SP_MIN  = 28;   // burst every ~0.5 s
-    const SP_MAX  = 52;   // burst every ~0.9 s
+    const Z_SPAWN = 750;   // close start → visible from frame 1
+    const Z_KILL  = -220;  // zoom well past the viewer plane
+    const TRAIL   = 44;
+    const SP_MIN  = 28;
+    const SP_MAX  = 52;
 
     // Launch origin: lower-right quadrant
     const OR_XP = 0.66;
@@ -130,10 +130,9 @@ function HeroCanvas3D() {
       const wxF  = (W * exitX + ex - W * 0.5) / sF;
       const wyF  = (H * exitY + ey - H * 0.5) / sF;
 
-      // Vary speed: fast (short life) vs cinematic-slow (long life)
       const life = isSuperStar
-        ? 55 + Math.floor(Math.random() * 20)
-        : 62 + Math.floor(Math.random() * (SP_MAX - SP_MIN));
+        ? 48 + Math.floor(Math.random() * 18)
+        : 52 + Math.floor(Math.random() * 22);
 
       return {
         wx: wx0, wy: wy0, wz: Z_SPAWN,
@@ -142,10 +141,8 @@ function HeroCanvas3D() {
         vz: (Z_KILL - Z_SPAWN) / life,
         trail: [],
         life, maxLife: life,
-        // super stars are 2.5× larger with extended bloom
-        sz: isSuperStar ? 2.8 + Math.random() * 1.4 : 0.9 + Math.random() * 2.0,
+        sz: isSuperStar ? 4.0 + Math.random() * 2.2 : 2.2 + Math.random() * 2.8,
         super: !!isSuperStar,
-        // subtle colour variation: warm gold vs orange-gold
         warm: Math.random() < 0.45,
       };
     }
@@ -296,13 +293,19 @@ function HeroCanvas3D() {
 
         if (s.life <= 0 || s.wz < Z_KILL) { S.stars.splice(i, 1); continue; }
 
-        const lr   = s.life / s.maxLife;
+        // bri stays 1.0 throughout flight, only fades in last 12% of frames.
+        // This is the key fix: previously lr (life ratio) went 1→0, making stars
+        // brightest when tiny (far) and dimmest when large (close) — completely
+        // cancelling the perspective zoom effect.
+        const pctLeft = s.life / s.maxLife;
+        const bri = pctLeft > 0.12 ? 1.0 : pctLeft / 0.12;
+
         const tLen = s.trail.length;
         if (tLen < 2) continue;
 
         const r1 = s.warm ? 255 : 244;
-        const g1 = s.warm ? 172 : 180;
-        const b1 = s.warm ? 8   : 26;
+        const g1 = s.warm ? 165 : 175;
+        const b1 = s.warm ? 8   : 20;
 
         /* ── tapered trail ──────────────────────────────────── */
         for (let t = 1; t < tLen; t++) {
@@ -310,16 +313,16 @@ function HeroCanvas3D() {
           const [bx, by, bsc] = s.trail[t];
           const p = t / tLen;   // 0=tail → 1=head
 
-          const aA = p * p * lr * (s.super ? 0.80 : 0.70);
-          const bA = (p + 0.08) * lr * (s.super ? 0.98 : 0.94);
+          const aA = p * p * 0.75 * bri;
+          const bA = (p + 0.08) * 0.98 * bri;
 
           const gl = ctx.createLinearGradient(ax, ay, bx, by);
           gl.addColorStop(0, `rgba(${r1},${g1},${b1},${Math.min(1, aA).toFixed(3)})`);
-          gl.addColorStop(1, `rgba(234,179,8,${Math.min(1, bA).toFixed(3)})`);
+          gl.addColorStop(1, `rgba(234,160,8,${Math.min(1, bA).toFixed(3)})`);
           ctx.strokeStyle = gl;
           ctx.lineWidth   = Math.max(
-            0.2,
-            Math.min((0.5 + p * s.sz * 3.2) * (0.14 + bsc * 3.0), s.super ? 11 : 7.5),
+            0.3,
+            Math.min((0.5 + p * s.sz * 3.5) * (0.12 + bsc * 3.2), s.super ? 13 : 9),
           );
           ctx.beginPath();
           ctx.moveTo(ax, ay);
@@ -327,33 +330,31 @@ function HeroCanvas3D() {
           ctx.stroke();
         }
 
-        /* ── head bloom ─────────────────────────────────────── */
+        /* ── head bloom — gold/amber so it pops on light bg ── */
         const [hx, hy, hsc] = s.trail[tLen - 1];
-        const cR    = Math.max(0.6, s.sz * hsc * (s.super ? 4.2 : 3.0) * lr);
-        const bloomR = cR * (s.super ? 6.5 : 5.2);
+        const cR     = Math.max(1.0, s.sz * hsc * (s.super ? 4.5 : 3.4) * bri);
+        const bloomR = cR * (s.super ? 7.0 : 5.8);
 
-        if (bloomR > 0.5) {
-          // Outer diffuse bloom
+        if (bloomR > 0.8) {
           const bloom = ctx.createRadialGradient(hx, hy, 0, hx, hy, bloomR);
-          bloom.addColorStop(0,    `rgba(255,255,230,${(lr * (s.super ? 1.0 : 0.97)).toFixed(3)})`);
-          bloom.addColorStop(0.20, `rgba(255,220,100,${(lr * 0.75).toFixed(3)})`);
-          bloom.addColorStop(0.50, `rgba(244,180,26,${(lr * 0.40).toFixed(3)})`);
-          bloom.addColorStop(1,    'rgba(244,180,26,0)');
+          bloom.addColorStop(0,    `rgba(255,210,40,${bri.toFixed(3)})`);
+          bloom.addColorStop(0.22, `rgba(244,165,10,${(bri * 0.80).toFixed(3)})`);
+          bloom.addColorStop(0.55, `rgba(234,130,0,${(bri * 0.42).toFixed(3)})`);
+          bloom.addColorStop(1,    'rgba(200,100,0,0)');
           ctx.fillStyle = bloom;
           ctx.beginPath();
           ctx.arc(hx, hy, bloomR, 0, Math.PI * 2);
           ctx.fill();
 
-          // Super-stars get a lens-flare burst at the head
-          if (s.super && lr > 0.25) {
-            lensFlare(ctx, hx, hy, bloomR * 0.85, lr * 0.50);
+          if (s.super && bri > 0.30) {
+            lensFlare(ctx, hx, hy, bloomR * 0.90, bri * 0.55);
           }
         }
 
-        // Solid white-hot core
-        ctx.fillStyle = `rgba(255,255,240,${(lr * 0.96).toFixed(3)})`;
+        // Bright gold core — visible against #FAF9F6
+        ctx.fillStyle = `rgba(255,220,60,${bri.toFixed(3)})`;
         ctx.beginPath();
-        ctx.arc(hx, hy, Math.max(0.4, cR * 0.55), 0, Math.PI * 2);
+        ctx.arc(hx, hy, Math.max(0.6, cR * 0.60), 0, Math.PI * 2);
         ctx.fill();
       }
 
