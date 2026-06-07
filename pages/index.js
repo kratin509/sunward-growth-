@@ -411,7 +411,7 @@ function TeamSection() {
         style={{
           zIndex: 1,
           background:
-            'linear-gradient(to right, #0B1629 0%, transparent 7%, transparent 93%, #0B1629 100%)',
+            'linear-gradient(to right, #FDFBF7 0%, transparent 7%, transparent 93%, #FDFBF7 100%)',
         }}
       />
 
