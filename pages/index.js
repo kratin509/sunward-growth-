@@ -69,10 +69,11 @@ function SunwardMark({ size = 36 }) {
 }
 
 /* ─────────────────────────────────────────────── HERO CANVAS
-   Two-phase star engine:
-   Phase 1 (intro) — 7 large stars sweep bottom-left → top-right,
-                     staggered, big & visible, ~4 s total.
-   Phase 2 (ambient) — 10 thin multi-directional stars loop forever. */
+   Three-act entrance + coda:
+   Act 1 (preintro) — one dramatic shooting star BL → TR (~2.5 s)
+   Act 2 (bloom)    — North Star blooms at its landing point (~1.5 s)
+   Act 3 (main)     — 3 slower follower stars sweep same path (~3 s)
+   Coda             — North Star pulses gently, continuous           */
 function HeroCanvas3D() {
   const canvasRef = useRef(null);
   const rafRef    = useRef(null);
@@ -84,107 +85,84 @@ function HeroCanvas3D() {
     const FL     = 480;
     const Z_FAR  = 800;
     const Z_KILL = -80;
+    const TRAIL  = 30;
 
-    /* ── intro config ───────────────────────────────────────────── */
-    const INTRO_N       = 7;
-    const INTRO_STAGGER = 18;   // frames between each intro star launch
-    const INTRO_TRAIL   = 28;
+    const BLOOM_DUR = 90;   // frames for the North Star bloom (~1.5 s)
+    const MAIN_N    = 3;    // follower stars
+    const MAIN_LAG  = 42;   // frames between each follower
 
-    /* ── ambient config ─────────────────────────────────────────── */
-    const AMB_N     = 10;
-    const AMB_TRAIL = 20;
-
-    let tick = 0;
-    let phase = 'intro';
-    const introStars = [];
-    const ambPool    = [];
-    let ambSeeded    = false;
+    let tick      = 0;
+    let phase     = 'preintro';  // → 'bloom' → 'main' → 'coda'
+    let bloomTick = 0;
+    let mainTick  = 0;
+    let northX    = 0;
+    let northY    = 0;
+    let piStar    = null;
+    const mainStars = [];
     let W0 = 0, H0 = 0;
 
     /* ── star factories ─────────────────────────────────────────── */
-    function makeIntroStar(W, H, spawnAt) {
-      const z  = Z_FAR * (0.18 + Math.random() * 0.48);
+    function makePreIntroStar(W, H) {
+      const z  = Z_FAR * 0.35;
       const s0 = FL / (FL + z);
       const sF = FL / (FL + Z_KILL);
-      const spx = W * (0.00 + Math.random() * 0.22);
-      const spy = H * (0.65 + Math.random() * 0.35);
-      const epx = W * (0.72 + Math.random() * 0.28);
-      const epy = H * (-0.10 + Math.random() * 0.16);
+      const spx = W * (0.04 + Math.random() * 0.08);
+      const spy = H * (0.78 + Math.random() * 0.14);
+      const epx = W * 0.74;   // fixed North Star landing X
+      const epy = H * 0.14;   // fixed North Star landing Y
+      northX = epx; northY = epy;
       const wx0 = (spx - W * 0.5) / s0;
       const wy0 = (spy - H * 0.5) / s0;
       const wxF = (epx - W * 0.5) / sF;
       const wyF = (epy - H * 0.5) / sF;
-      const maxLife = 90 + Math.floor(Math.random() * 28);
+      const maxLife = 148;
       return {
         wx: wx0, wy: wy0, wz: z,
         vx: (wxF - wx0) / maxLife,
         vy: (wyF - wy0) / maxLife,
         vz: (Z_KILL - z) / maxLife,
         trail: [], life: maxLife, maxLife,
-        sz: 13 + Math.random() * 11,
+        sz: 16, hue: true,
+      };
+    }
+
+    function makeMainStar(W, H, spawnAt) {
+      const z  = Z_FAR * (0.22 + Math.random() * 0.38);
+      const s0 = FL / (FL + z);
+      const sF = FL / (FL + Z_KILL);
+      const spx = W * (0.01 + Math.random() * 0.16);
+      const spy = H * (0.70 + Math.random() * 0.28);
+      const epx = W * (0.65 + Math.random() * 0.28);
+      const epy = H * (-0.06 + Math.random() * 0.16);
+      const wx0 = (spx - W * 0.5) / s0;
+      const wy0 = (spy - H * 0.5) / s0;
+      const wxF = (epx - W * 0.5) / sF;
+      const wyF = (epy - H * 0.5) / sF;
+      const maxLife = 120 + Math.floor(Math.random() * 20);
+      return {
+        wx: wx0, wy: wy0, wz: z,
+        vx: (wxF - wx0) / maxLife,
+        vy: (wyF - wy0) / maxLife,
+        vz: (Z_KILL - z) / maxLife,
+        trail: [], life: maxLife, maxLife,
+        sz: 9 + Math.random() * 8,
         hue: Math.random() < 0.55,
         spawnAt, alive: false,
       };
     }
 
-    function makeAmbStar(W, H, ageOffset) {
-      const z  = Z_FAR * (0.35 + Math.random() * 0.65);
-      const s0 = FL / (FL + z);
-      const sF = FL / (FL + Z_KILL);
-      const lane = Math.floor(Math.random() * 4);
-      let spx, spy, epx, epy;
-      if (lane === 0) {
-        spx = W * (0.55 + Math.random() * 0.42);
-        spy = H * (0.72 + Math.random() * 0.28);
-        epx = W * (0.02 + Math.random() * 0.30);
-        epy = H * (-0.08 + Math.random() * 0.14);
-      } else if (lane === 1) {
-        spx = W * (0.82 + Math.random() * 0.18);
-        spy = H * (0.40 + Math.random() * 0.45);
-        epx = W * (0.04 + Math.random() * 0.28);
-        epy = H * (0.02 + Math.random() * 0.22);
-      } else if (lane === 2) {
-        spx = W * (0.28 + Math.random() * 0.36);
-        spy = H * (0.78 + Math.random() * 0.22);
-        epx = W * (0.58 + Math.random() * 0.32);
-        epy = H * (-0.06 + Math.random() * 0.12);
-      } else {
-        spx = W * (0.38 + Math.random() * 0.50);
-        spy = H * (0.82 + Math.random() * 0.18);
-        epx = W * (0.30 + Math.random() * 0.40);
-        epy = H * (-0.06 + Math.random() * 0.10);
-      }
-      const wx0 = (spx - W * 0.5) / s0;
-      const wy0 = (spy - H * 0.5) / s0;
-      const wxF = (epx - W * 0.5) / sF;
-      const wyF = (epy - H * 0.5) / sF;
-      const maxLife = 72 + Math.floor(Math.random() * 40);
-      const aged    = Math.floor((ageOffset || 0) * maxLife);
-      return {
-        wx: wx0 + (wxF - wx0) * aged / maxLife,
-        wy: wy0 + (wyF - wy0) * aged / maxLife,
-        wz: z   + (Z_KILL - z) * aged / maxLife,
-        vx: (wxF - wx0)  / maxLife,
-        vy: (wyF - wy0)  / maxLife,
-        vz: (Z_KILL - z) / maxLife,
-        trail: [], life: maxLife - aged, maxLife,
-        sz:  3.5 + Math.random() * 5,
-        hue: Math.random() < 0.55,
-      };
-    }
-
-    /* ── shared draw helpers ────────────────────────────────────── */
-    function draw4pt(ctx, cx, cy, R, alpha, hue, glowMult, glowAlpha) {
+    /* ── draw helpers ───────────────────────────────────────────── */
+    function draw4pt(ctx, cx, cy, R, alpha, hue, gMult, gAlpha) {
       if (R < 0.4) return;
       const r   = R * 0.26;
       const col = hue ? '244,180,26' : '234,179,8';
-      const gr  = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * glowMult);
-      gr.addColorStop(0,   `rgba(${col},${(alpha * glowAlpha).toFixed(3)})`);
-      gr.addColorStop(0.5, `rgba(${col},${(alpha * glowAlpha * 0.30).toFixed(3)})`);
+      const gr  = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * gMult);
+      gr.addColorStop(0,   `rgba(${col},${(alpha * gAlpha).toFixed(3)})`);
+      gr.addColorStop(0.5, `rgba(${col},${(alpha * gAlpha * 0.28).toFixed(3)})`);
       gr.addColorStop(1,   `rgba(${col},0)`);
       ctx.fillStyle = gr;
       ctx.beginPath();
-      ctx.arc(cx, cy, R * glowMult, 0, Math.PI * 2);
+      ctx.arc(cx, cy, R * gMult, 0, Math.PI * 2);
       ctx.fill();
       ctx.beginPath();
       for (let i = 0; i < 8; i++) {
@@ -199,7 +177,7 @@ function HeroCanvas3D() {
       ctx.fill();
     }
 
-    function renderStar(ctx, s, isIntro) {
+    function renderStar(ctx, s) {
       const tLen = s.trail.length;
       if (tLen < 2) return;
       const pct = s.life / s.maxLife;
@@ -210,26 +188,52 @@ function HeroCanvas3D() {
         const [ax, ay]      = s.trail[t - 1];
         const [bx, by, bsc] = s.trail[t];
         const p    = t / tLen;
-        const segA = isIntro
-          ? Math.pow(p, 1.4) * bri * 0.72
-          : Math.pow(p, 2.2) * bri * 0.52;
+        const segA = Math.pow(p, 1.5) * bri * 0.68;
         const col  = s.hue ? '244,180,26' : '234,179,8';
         const gl   = ctx.createLinearGradient(ax, ay, bx, by);
         gl.addColorStop(0, `rgba(${col},0)`);
         gl.addColorStop(1, `rgba(${col},${Math.min(1, segA).toFixed(3)})`);
         ctx.strokeStyle = gl;
-        ctx.lineWidth   = isIntro
-          ? Math.max(0.5, Math.pow(p, 0.58) * s.sz * bsc * 1.35)
-          : Math.max(0.2, Math.pow(p, 0.80) * s.sz * bsc * 0.80);
+        ctx.lineWidth   = Math.max(0.5, Math.pow(p, 0.60) * s.sz * bsc * 1.10);
         ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();
       }
       const [hx, hy, hsc] = s.trail[tLen - 1];
-      const headR = isIntro
-        ? Math.max(1.2, s.sz * hsc * 0.90)
-        : Math.max(0.5, s.sz * hsc * 0.75);
-      draw4pt(ctx, hx, hy, headR, bri, s.hue,
-        isIntro ? 3.2 : 2.4,
-        isIntro ? 0.30 : 0.22);
+      draw4pt(ctx, hx, hy, Math.max(1.0, s.sz * hsc * 0.85), bri, s.hue, 3.0, 0.28);
+    }
+
+    function stepStar(s, W, H) {
+      const dz = FL + s.wz;
+      if (dz > 1) {
+        const sc = FL / dz;
+        s.trail.push([s.wx * sc + W * 0.5, s.wy * sc + H * 0.5, sc]);
+        if (s.trail.length > TRAIL) s.trail.shift();
+      }
+      s.wx += s.vx; s.wy += s.vy; s.wz += s.vz; s.life--;
+    }
+
+    function drawNorthStar(ctx, bx, by, t) {
+      const bp = Math.min(1, t / BLOOM_DUR);
+      // Three expanding rings during bloom
+      if (bp < 1) {
+        for (let k = 0; k < 3; k++) {
+          const rP = Math.max(0, (bp - k * 0.18) / (1 - k * 0.18));
+          const ringR = rP * 88;
+          const ringA = (1 - rP) * 0.36;
+          if (ringA > 0.005 && ringR > 0.5) {
+            ctx.beginPath();
+            ctx.arc(bx, by, ringR, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(244,180,26,${ringA.toFixed(3)})`;
+            ctx.lineWidth = 1.5 * (1 - rP);
+            ctx.stroke();
+          }
+        }
+      }
+      // 4-point star — grows in during bloom, pulses gently in coda
+      const starP = Math.min(1, bp * 2.0);
+      const pulse = phase === 'bloom' ? 1.0 : 0.55 + 0.45 * Math.sin(t * 0.055);
+      const starR = (10 + pulse * 5) * starP;
+      const starA = Math.min(1, starP * 2.0) * (0.68 + pulse * 0.32);
+      if (starR > 0.4) draw4pt(ctx, bx, by, starR, starA, true, 3.6, 0.32);
     }
 
     /* ── render loop ────────────────────────────────────────────── */
@@ -243,13 +247,11 @@ function HeroCanvas3D() {
       if (canvas.width !== cW || canvas.height !== cH) {
         canvas.width = cW; canvas.height = cH;
       }
-
-      /* Reset on first valid frame or viewport resize */
       if (W !== W0 || H !== H0) {
-        tick = 0; phase = 'intro'; ambSeeded = false;
-        introStars.length = 0; ambPool.length = 0;
-        for (let i = 0; i < INTRO_N; i++)
-          introStars.push(makeIntroStar(W, H, i * INTRO_STAGGER));
+        tick = 0; bloomTick = 0; mainTick = 0;
+        phase = 'preintro';
+        mainStars.length = 0;
+        piStar = makePreIntroStar(W, H);
         W0 = W; H0 = H;
       }
 
@@ -261,43 +263,43 @@ function HeroCanvas3D() {
       ctx.lineJoin = 'round';
       tick++;
 
-      if (phase === 'intro') {
+      if (phase === 'preintro') {
+        stepStar(piStar, W, H);
+        renderStar(ctx, piStar);
+        if (piStar.life <= 0 || piStar.wz < Z_KILL) {
+          if (piStar.trail.length > 0)
+            [northX, northY] = piStar.trail[piStar.trail.length - 1];
+          phase = 'bloom'; bloomTick = 0;
+        }
+
+      } else if (phase === 'bloom') {
+        bloomTick++;
+        drawNorthStar(ctx, northX, northY, bloomTick);
+        if (bloomTick >= BLOOM_DUR) {
+          phase = 'main'; mainTick = 0;
+          for (let i = 0; i < MAIN_N; i++)
+            mainStars.push(makeMainStar(W, H, i * MAIN_LAG));
+        }
+
+      } else if (phase === 'main') {
+        mainTick++;
+        drawNorthStar(ctx, northX, northY, BLOOM_DUR + mainTick);
         let anyAlive = false;
-        for (const s of introStars) {
-          if (!s.alive && tick >= s.spawnAt) s.alive = true;
+        for (const s of mainStars) {
+          if (!s.alive && mainTick >= s.spawnAt) s.alive = true;
           if (!s.alive) continue;
-          const dz = FL + s.wz;
-          if (dz > 1) {
-            const sc = FL / dz;
-            s.trail.push([s.wx * sc + W * 0.5, s.wy * sc + H * 0.5, sc]);
-            if (s.trail.length > INTRO_TRAIL) s.trail.shift();
-          }
-          s.wx += s.vx; s.wy += s.vy; s.wz += s.vz; s.life--;
+          stepStar(s, W, H);
           if (s.life > 0 && s.wz > Z_KILL) {
             anyAlive = true;
-            renderStar(ctx, s, true);
+            renderStar(ctx, s);
           }
         }
-        /* Switch to ambient once all intro stars have launched and died */
-        if (tick > (INTRO_N - 1) * INTRO_STAGGER + 15 && !anyAlive) phase = 'ambient';
+        if (mainTick > (MAIN_N - 1) * MAIN_LAG + 10 && !anyAlive) phase = 'coda';
 
       } else {
-        if (!ambSeeded) {
-          for (let i = 0; i < AMB_N; i++) ambPool.push(makeAmbStar(W, H, Math.random()));
-          ambSeeded = true;
-        }
-        for (let i = 0; i < ambPool.length; i++) {
-          const s  = ambPool[i];
-          const dz = FL + s.wz;
-          if (dz > 1) {
-            const sc = FL / dz;
-            s.trail.push([s.wx * sc + W * 0.5, s.wy * sc + H * 0.5, sc]);
-            if (s.trail.length > AMB_TRAIL) s.trail.shift();
-          }
-          s.wx += s.vx; s.wy += s.vy; s.wz += s.vz; s.life--;
-          if (s.life <= 0 || s.wz < Z_KILL) { ambPool[i] = makeAmbStar(W, H, 0); continue; }
-          renderStar(ctx, s, false);
-        }
+        // coda — North Star pulses indefinitely
+        mainTick++;
+        drawNorthStar(ctx, northX, northY, BLOOM_DUR + mainTick);
       }
 
       ctx.restore();
