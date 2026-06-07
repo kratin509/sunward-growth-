@@ -87,9 +87,8 @@ function HeroCanvas3D() {
     const Z_KILL = -80;
     const TRAIL  = 30;
 
-    const BLOOM_DUR = 90;   // frames for the North Star bloom (~1.5 s)
-    const MAIN_N    = 3;    // follower stars
-    const MAIN_LAG  = 42;   // frames between each follower
+    const BLOOM_DUR  = 90;   // frames for the North Star bloom (~1.5 s)
+    const MAIN_POOL  = 4;    // continuous pool size
 
     let tick      = 0;
     let phase     = 'preintro';  // → 'bloom' → 'main' → 'coda'
@@ -126,44 +125,31 @@ function HeroCanvas3D() {
       };
     }
 
-    function makeMainStar(W, H, spawnAt, lane) {
+    function makeMainStar(W, H, ageOffset) {
+      // Single lane: bottom-left → top-right, consistent with preintro direction
       const z  = Z_FAR * (0.22 + Math.random() * 0.38);
       const s0 = FL / (FL + z);
       const sF = FL / (FL + Z_KILL);
-      let spx, spy, epx, epy;
-      if (lane === 0) {
-        // Bottom-left → top-right (mirrors preintro direction)
-        spx = W * (0.01 + Math.random() * 0.14);
-        spy = H * (0.72 + Math.random() * 0.24);
-        epx = W * (0.66 + Math.random() * 0.26);
-        epy = H * (-0.05 + Math.random() * 0.13);
-      } else if (lane === 1) {
-        // Bottom-right → top-left (counter-diagonal)
-        spx = W * (0.74 + Math.random() * 0.22);
-        spy = H * (0.70 + Math.random() * 0.28);
-        epx = W * (0.04 + Math.random() * 0.20);
-        epy = H * (-0.05 + Math.random() * 0.14);
-      } else {
-        // Bottom-center → top-center (near-vertical, slight rightward drift)
-        spx = W * (0.36 + Math.random() * 0.28);
-        spy = H * (0.78 + Math.random() * 0.20);
-        epx = W * (0.42 + Math.random() * 0.24);
-        epy = H * (-0.04 + Math.random() * 0.10);
-      }
+      const spx = W * (0.01 + Math.random() * 0.16);
+      const spy = H * (0.70 + Math.random() * 0.26);
+      const epx = W * (0.64 + Math.random() * 0.28);
+      const epy = H * (-0.05 + Math.random() * 0.13);
       const wx0 = (spx - W * 0.5) / s0;
       const wy0 = (spy - H * 0.5) / s0;
       const wxF = (epx - W * 0.5) / sF;
       const wyF = (epy - H * 0.5) / sF;
       const maxLife = 118 + Math.floor(Math.random() * 22);
+      const aged    = Math.floor((ageOffset || 0) * maxLife);
       return {
-        wx: wx0, wy: wy0, wz: z,
+        wx: wx0 + (wxF - wx0) * aged / maxLife,
+        wy: wy0 + (wyF - wy0) * aged / maxLife,
+        wz: z   + (Z_KILL - z) * aged / maxLife,
         vx: (wxF - wx0) / maxLife,
         vy: (wyF - wy0) / maxLife,
         vz: (Z_KILL - z) / maxLife,
-        trail: [], life: maxLife, maxLife,
+        trail: [], life: maxLife - aged, maxLife,
         sz: 11 + Math.random() * 7,
         hue: Math.random() < 0.55,
-        spawnAt, alive: false,
       };
     }
 
@@ -304,29 +290,23 @@ function HeroCanvas3D() {
         drawNorthStar(ctx, northX, northY, bloomTick);
         if (bloomTick >= BLOOM_DUR) {
           phase = 'main'; mainTick = 0;
-          for (let i = 0; i < MAIN_N; i++)
-            mainStars.push(makeMainStar(W, H, i * MAIN_LAG, i % 3));
+          for (let i = 0; i < MAIN_POOL; i++)
+            mainStars.push(makeMainStar(W, H, Math.random()));
         }
-
-      } else if (phase === 'main') {
-        mainTick++;
-        drawNorthStar(ctx, northX, northY, BLOOM_DUR + mainTick);
-        let anyAlive = false;
-        for (const s of mainStars) {
-          if (!s.alive && mainTick >= s.spawnAt) s.alive = true;
-          if (!s.alive) continue;
-          stepStar(s, W, H);
-          if (s.life > 0 && s.wz > Z_KILL) {
-            anyAlive = true;
-            renderStar(ctx, s);
-          }
-        }
-        if (mainTick > (MAIN_N - 1) * MAIN_LAG + 10 && !anyAlive) phase = 'coda';
 
       } else {
-        // coda — North Star pulses indefinitely
+        // main — continuous pool, North Star glows throughout
         mainTick++;
         drawNorthStar(ctx, northX, northY, BLOOM_DUR + mainTick);
+        for (let i = 0; i < mainStars.length; i++) {
+          const s = mainStars[i];
+          stepStar(s, W, H);
+          if (s.life <= 0 || s.wz < Z_KILL) {
+            mainStars[i] = makeMainStar(W, H, 0);
+            continue;
+          }
+          renderStar(ctx, s);
+        }
       }
 
       ctx.restore();
