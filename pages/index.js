@@ -373,7 +373,7 @@ function TeamSection() {
       ref={sectionRef}
       className="scroll-mt-[64px] relative overflow-hidden"
       style={{
-        background: 'linear-gradient(180deg, #0B1629 0%, #0F1E38 22%, #1A2D4E 38%, #C8C4B8 60%, #EAE5D8 75%, #FDFBF7 100%)',
+        background: 'linear-gradient(180deg, #FDFBF7 0%, #EFECE6 45%, #EAE5D8 55%, #FDFBF7 100%)',
       }}
     >
       {/* ── "OUR" / "TEAM" scroll-motion background text ── */}
@@ -423,14 +423,14 @@ function TeamSection() {
             <span className="w-8 h-px" style={{ background: '#F4B41A' }} />
             <span
               className="font-sans text-[10px] uppercase tracking-[0.3em]"
-              style={{ color: 'rgba(255,255,255,0.42)' }}
+              style={{ color: 'rgba(11,13,16,0.38)' }}
             >
               The Team
             </span>
           </div>
           <h2
             className="font-serif font-semibold leading-[1.08] tracking-[-0.022em]"
-            style={{ fontSize: 'clamp(2rem, 4.5vw, 4.2rem)', color: 'rgba(255,255,255,0.92)' }}
+            style={{ fontSize: 'clamp(2rem, 4.5vw, 4.2rem)', color: '#1A2540' }}
           >
             The people behind{' '}
             <span className="italic font-light" style={{ color: '#F4B41A' }}>Sunward.</span>
