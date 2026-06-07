@@ -956,81 +956,115 @@ export default function Home() {
             </div>
           </div>
 
-          <footer id="footer" className="px-6 md:px-14 xl:px-20 pt-16 pb-12">
-            <div className="max-w-[1440px] mx-auto">
-              <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-12 mb-16">
+        </section>
 
-                <div className="md:col-span-2">
-                  <div className="flex items-center gap-2.5 mb-5">
-                    <SunwardMark size={26} />
-                    <span className="font-serif text-[12px] font-semibold text-white tracking-[0.18em] uppercase">
-                      Sunward Growth Advisory
-                    </span>
-                  </div>
-                  <p className="font-sans font-light text-[13px] text-white/26 leading-relaxed max-w-[280px]">
-                    Hands-on growth consulting for founders serious about scale.
-                    Strategy · Scale · Growth.
-                  </p>
+        {/* ══ FOOTER — cream → deep navy gradient ═════════════════════ */}
+        <footer
+          id="footer"
+          className="relative px-6 md:px-14 xl:px-20 pt-16 pb-10"
+          style={{
+            background: 'linear-gradient(to bottom, #FAF9F6 0%, #FAF9F6 38%, #2a3460 58%, #1E2342 72%, #080E1F 100%)'
+          }}
+        >
+          <div className="max-w-[1440px] mx-auto">
+
+            {/* ── Main grid — sits on the cream zone ── */}
+            <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-12 mb-14">
+
+              {/* Brand */}
+              <div className="md:col-span-2">
+                <div className="flex items-center gap-2.5 mb-5">
+                  <SunwardMark size={26} />
+                  <span className="font-serif text-[12px] font-semibold tracking-[0.18em] uppercase" style={{ color: '#1E2342' }}>
+                    Sunward Growth Advisory
+                  </span>
                 </div>
+                <p className="font-sans font-light text-[13px] leading-relaxed max-w-[280px]" style={{ color: 'rgba(30,35,66,0.62)' }}>
+                  Hands-on growth consulting for founders serious about scale.
+                  Strategy · Scale · Growth.
+                </p>
+              </div>
 
-                <div>
-                  <div className="font-sans text-[9px] uppercase tracking-[0.28em] text-[#F4B41A] mb-5">
-                    General Inquiries
-                  </div>
-                  <div className="space-y-2 font-sans font-light text-[13px] text-white/36">
-                    <div>
-                      <a href="mailto:info@sunwardgrowth.com" className="hover:text-white transition-colors duration-200 break-all">
-                        info@sunwardgrowth.com
-                      </a>
-                    </div>
-                    <div className="text-[10px] text-white/22 uppercase tracking-[0.12em] pt-2">Hotline</div>
-                    <div>
-                      <a href="tel:+918822456789" className="hover:text-white transition-colors duration-200">
-                        +91 88224 56789
-                      </a>
-                    </div>
-                    <div className="pt-2 space-y-0.5">
-                      <div className="text-white/52">India</div>
-                      <div className="text-white/26 text-[12px]">Bandra, Mumbai 400050</div>
-                    </div>
-                  </div>
+              {/* General Inquiries */}
+              <div>
+                <div className="font-sans text-[9px] uppercase tracking-[0.28em] text-[#F4B41A] mb-5">
+                  General Inquiries
                 </div>
-
-                <div>
-                  <div className="font-sans text-[9px] uppercase tracking-[0.28em] text-[#F4B41A] mb-5">
-                    Navigate
+                <div className="space-y-2 font-sans font-light text-[13px]" style={{ color: 'rgba(30,35,66,0.70)' }}>
+                  <div>
+                    <a href="mailto:info@sunwardgrowth.com" style={{ color: 'inherit' }} className="hover:text-[#1E2342] transition-colors duration-200 break-all">
+                      info@sunwardgrowth.com
+                    </a>
                   </div>
-                  <div className="space-y-2.5 font-sans font-light text-[13px] text-white/36">
-                    {NAV_LINKS.map(({ label, href }) => (
-                      <div key={label}>
-                        <a href={href} className="hover:text-white transition-colors duration-200">
-                          {label}
-                        </a>
-                      </div>
-                    ))}
-                    <div className="pt-1">
-                      <a
-                        href="mailto:info@sunwardgrowth.com"
-                        className="text-[#F4B41A]/60 hover:text-[#F4B41A] transition-colors duration-200 font-medium"
-                      >
-                        Book a Discovery Call ↗
-                      </a>
-                    </div>
+                  <div className="text-[10px] uppercase tracking-[0.12em] pt-2" style={{ color: 'rgba(30,35,66,0.38)' }}>Hotline</div>
+                  <div>
+                    <a href="tel:+918822456789" style={{ color: 'inherit' }} className="hover:text-[#1E2342] transition-colors duration-200">
+                      +91 88224 56789
+                    </a>
+                  </div>
+                  <div className="pt-2 space-y-0.5">
+                    <div style={{ color: 'rgba(30,35,66,0.70)' }}>India</div>
+                    <div className="text-[12px]" style={{ color: 'rgba(30,35,66,0.45)' }}>Bandra, Mumbai 400050</div>
                   </div>
                 </div>
               </div>
 
-              <div className="pt-8 border-t border-white/[0.05] flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
-                <span className="font-sans text-white/14 text-[12px]">
-                  © {new Date().getFullYear()} Sunward Growth Advisory. All Rights Reserved.
-                </span>
-                <span className="font-sans text-white/14 text-[11px] uppercase tracking-[0.18em]">
-                  Strategy · Scale · Growth
-                </span>
+              {/* Navigate */}
+              <div>
+                <div className="font-sans text-[9px] uppercase tracking-[0.28em] text-[#F4B41A] mb-5">
+                  Navigate
+                </div>
+                <div className="space-y-2.5 font-sans font-light text-[13px]" style={{ color: 'rgba(30,35,66,0.70)' }}>
+                  {NAV_LINKS.map(({ label, href }) => (
+                    <div key={label}>
+                      <a href={href} style={{ color: 'inherit' }} className="hover:text-[#1E2342] transition-colors duration-200">
+                        {label}
+                      </a>
+                    </div>
+                  ))}
+                  <div className="pt-1">
+                    <a
+                      href="mailto:info@sunwardgrowth.com"
+                      className="transition-colors duration-200 font-medium"
+                      style={{ color: 'rgba(244,180,26,0.75)' }}
+                      onMouseEnter={e => e.currentTarget.style.color = '#F4B41A'}
+                      onMouseLeave={e => e.currentTarget.style.color = 'rgba(244,180,26,0.75)'}
+                    >
+                      Book a Discovery Call ↗
+                    </a>
+                  </div>
+                </div>
               </div>
             </div>
-          </footer>
-        </section>
+
+            {/* ── Copyright bar — sits on the dark navy zone ── */}
+            <div className="pt-7 border-t border-white/[0.12] flex flex-col sm:flex-row justify-between items-center gap-4">
+              <span className="font-sans text-[12px]" style={{ color: 'rgba(255,255,255,0.52)' }}>
+                © {new Date().getFullYear()} Sunward Growth Advisory. All Rights Reserved.
+              </span>
+
+              {/* LinkedIn */}
+              <a
+                href="https://www.linkedin.com/company/sunward-growth-advisory/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center gap-2 transition-colors duration-200"
+                style={{ color: 'rgba(255,255,255,0.45)' }}
+                onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.9)'}
+                onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.45)'}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                </svg>
+                <span className="font-sans text-[10px] uppercase tracking-[0.16em]">LinkedIn</span>
+              </a>
+
+              <span className="font-sans text-[11px] uppercase tracking-[0.18em]" style={{ color: 'rgba(255,255,255,0.26)' }}>
+                Strategy · Scale · Growth
+              </span>
+            </div>
+          </div>
+        </footer>
 
       </main>
     </>
