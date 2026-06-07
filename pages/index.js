@@ -1303,7 +1303,7 @@ export default function Home() {
                       <p className="font-sans text-[13.5px] italic leading-relaxed mb-5 text-[#0B0D10]/55 group-hover:text-white/60 transition-colors duration-500">
                         {cs.tagline}
                       </p>
-                      <p className="font-sans text-[9.5px] uppercase tracking-[0.22em] mb-3 text-[#F4B41A]">
+                      <p className="font-sans text-[13px] font-semibold uppercase tracking-[0.18em] mb-3 text-[#F4B41A]">
                         The Situation
                       </p>
                       <p className="font-sans font-normal text-[15px] leading-[1.82] text-[#0B0D10]/80 group-hover:text-white/90 transition-colors duration-500">
@@ -1313,7 +1313,7 @@ export default function Home() {
 
                     {/* ── Col 3: Approach + outcome ── */}
                     <div>
-                      <p className="font-sans text-[9.5px] uppercase tracking-[0.22em] mb-4 text-[#F4B41A]">
+                      <p className="font-sans text-[13px] font-semibold uppercase tracking-[0.18em] mb-4 text-[#F4B41A]">
                         Our Approach
                       </p>
                       <ul className="space-y-3 mb-8">
@@ -1330,7 +1330,7 @@ export default function Home() {
                         ))}
                       </ul>
                       <div className="border-t border-[#0B0D10]/10 group-hover:border-white/[0.14] pt-6 transition-all duration-500 group-hover:pl-4">
-                        <p className="font-sans text-[9.5px] uppercase tracking-[0.22em] mb-1.5 text-[#F4B41A]/80 group-hover:text-[#F4B41A] transition-colors duration-500">
+                        <p className="font-sans text-[13px] font-semibold uppercase tracking-[0.18em] mb-2 text-[#F4B41A]/80 group-hover:text-[#F4B41A] transition-colors duration-500">
                           Outcome
                         </p>
                         <p
