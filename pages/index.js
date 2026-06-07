@@ -1015,14 +1015,14 @@ export default function Home() {
                 <div className="flex flex-col sm:flex-row items-center gap-4">
                   <a
                     href="mailto:info@sunwardgrowth.com"
-                    className="inline-flex items-center gap-2.5 bg-[#0B0D10] text-[#FAF9F6] font-sans text-[12px] font-medium tracking-[0.05em] px-7 py-[13px] rounded-sm hover:bg-[#F4B41A] hover:text-[#0B0D10] hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(244,180,26,0.30)] transition-all duration-300"
+                    className="inline-flex items-center gap-3 bg-[#0B0D10] text-[#FAF9F6] font-sans text-[14px] font-medium tracking-[0.05em] px-10 py-[17px] rounded-sm hover:bg-[#F4B41A] hover:text-[#0B0D10] hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(244,180,26,0.30)] transition-all duration-300"
                   >
                     Book a Free Discovery Call
-                    <span className="text-[14px] leading-none">↗</span>
+                    <span className="text-[16px] leading-none">↗</span>
                   </a>
                   <a
                     href="#portfolio"
-                    className="inline-flex items-center gap-2 border border-[rgba(11,13,16,0.22)] text-[#0B0D10] font-sans text-[12px] font-medium tracking-[0.05em] px-7 py-[13px] rounded-sm hover:border-[#F4B41A] hover:bg-[rgba(244,180,26,0.07)] transition-all duration-300"
+                    className="inline-flex items-center gap-2 border border-[rgba(11,13,16,0.22)] text-[#0B0D10] font-sans text-[14px] font-medium tracking-[0.05em] px-10 py-[17px] rounded-sm hover:border-[#F4B41A] hover:bg-[rgba(244,180,26,0.07)] transition-all duration-300"
                   >
                     View Our Work
                   </a>
