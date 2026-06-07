@@ -933,21 +933,21 @@ export default function Home() {
                 </p>
               </div>
 
-              {/* Stats */}
-              <div className="grid grid-cols-3 gap-8 md:gap-16 max-w-2xl">
+              {/* Stats — full width, no constraint */}
+              <div className="grid grid-cols-3 w-full border-t border-white/[0.07] pt-8">
                 {[
                   { n: yearsCount, s: '+', label: 'Years of Experience'    },
                   { n: contCount,  s: '+', label: 'Continents'              },
                   { n: orgsCount,  s: '+', label: 'Organisations Supported' },
-                ].map(({ n, s, label }) => (
-                  <div key={label} className="group">
+                ].map(({ n, s, label }, i) => (
+                  <div key={label} className={`py-4 ${i !== 0 ? 'pl-10 md:pl-16 border-l border-white/[0.07]' : ''}`}>
                     <div
                       className="font-serif font-bold text-[#F4B41A] tabular-nums leading-none"
-                      style={{ fontSize: 'clamp(2.4rem, 4.5vw, 4.8rem)' }}
+                      style={{ fontSize: 'clamp(3rem, 7vw, 7.5rem)' }}
                     >
                       {n}{s}
                     </div>
-                    <div className="font-sans text-[9px] uppercase tracking-[0.22em] mt-2" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                    <div className="font-sans text-[10px] uppercase tracking-[0.24em] mt-3" style={{ color: 'rgba(255,255,255,0.42)' }}>
                       {label}
                     </div>
                   </div>
