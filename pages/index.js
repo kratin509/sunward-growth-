@@ -68,106 +68,214 @@ function SunwardMark({ size = 36 }) {
   );
 }
 
-/* ─────────────────────────────────────────────── WAVE CANVAS
-   Cursor-driven pseudo-3D topographic contour animation.
-   22 organic closed curves rendered via parametric sine superposition.
-   Mouse position drives:
-     • formation centre drift
-     • yScale (perspective ellipse squish — simulates X-axis tilt)
-     • xShear (simulates Y-axis tilt)
-   All state lives in refs; zero React re-renders during animation.        */
-function WaveCanvas() {
-  const canvasRef = useRef(null);
-  const mouseRef  = useRef({ x: 600, y: 400 });   // raw mouse (viewport coords)
-  const curRef    = useRef({ x: 600, y: 400 });   // lerped smooth position
-  const timeRef   = useRef(0);
-  const rafRef    = useRef(null);
+/* ─────────────────────────────────────────────── NORTH STAR CANVAS
+   "North Star Launch" — three-layer premium hero animation:
+   1. Pulsing 4-point gold cross-star in the upper-right quadrant
+   2. Stardust micro-particles that float around the star on mouse proximity
+   3. Scroll-triggered shooting star: bursts from star, shoots diagonally
+      down-right, leaves a vector trail that decays with scroll depth.
+   All state lives in a single ref object — zero React re-renders.        */
+function NorthStarCanvas() {
+  const canvasRef  = useRef(null);
+  const rafRef     = useRef(null);
+  const stateRef   = useRef({
+    t:       0,
+    scrollY: 0,
+    mouse:   { x: -999, y: -999 },
+    dust:    [],
+    shoot: {
+      active: false, triggered: false,
+      x: 0, y: 0, vx: 0, vy: 0,
+      life: 0, maxLife: 88, trail: [],
+    },
+  });
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    const S = stateRef.current;
 
+    /* ── Event listeners ─────────────────────────────────────── */
     const onMouse = (e) => {
-      mouseRef.current.x = e.clientX;
-      mouseRef.current.y = e.clientY;
+      const r  = canvas.getBoundingClientRect();
+      S.mouse.x = e.clientX - r.left;
+      S.mouse.y = e.clientY - r.top;
     };
-    window.addEventListener('mousemove', onMouse, { passive: true });
 
-    function draw() {
+    const onScroll = () => {
+      S.scrollY = window.scrollY;
+      if (!S.shoot.triggered && window.scrollY > 8) {
+        const W  = canvas.clientWidth;
+        const H  = canvas.clientHeight;
+        const sx = W * 0.72, sy = H * 0.27;
+        // 55° angle in canvas-space (y-down): cos=right, sin=down — diagonal launch
+        const rad = (55 * Math.PI) / 180;
+        const spd = Math.min(W, H) * 0.036;
+        S.shoot = {
+          active: true, triggered: true,
+          x: sx, y: sy,
+          vx: Math.cos(rad) * spd,
+          vy: Math.sin(rad) * spd,
+          life: 0, maxLife: 88, trail: [],
+        };
+      }
+    };
+
+    window.addEventListener('mousemove', onMouse, { passive: true });
+    window.addEventListener('scroll',    onScroll, { passive: true });
+
+    /* ── 4-point star geometry helper ───────────────────────── */
+    function draw4Star(ctx, sx, sy, armLen, pulse) {
+      const shortR = armLen * 0.13;
+
+      // Wide ambient halo
+      const halo = ctx.createRadialGradient(sx, sy, 0, sx, sy, armLen * 3.6);
+      halo.addColorStop(0,    `rgba(244,180,26,${(0.11 * pulse).toFixed(3)})`);
+      halo.addColorStop(0.45, `rgba(244,180,26,0.04)`);
+      halo.addColorStop(1,    'rgba(244,180,26,0)');
+      ctx.fillStyle = halo;
+      ctx.beginPath();
+      ctx.arc(sx, sy, armLen * 3.6, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Cardinal arms — N E S W kite diamonds
+      ctx.fillStyle = `rgba(244,180,26,${(0.30 * pulse).toFixed(3)})`;
+      for (const [dx, dy] of [[0,-1],[1,0],[0,1],[-1,0]]) {
+        const px = -dy * shortR, py = dx * shortR;
+        ctx.beginPath();
+        ctx.moveTo(sx + px,          sy + py);
+        ctx.lineTo(sx + dx * armLen, sy + dy * armLen);
+        ctx.lineTo(sx - px,          sy - py);
+        ctx.lineTo(sx,               sy);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      // Diagonal sub-arms — 45° offset, shorter and softer
+      const diagLen = armLen * 0.52, diagR = shortR * 0.62;
+      ctx.fillStyle = `rgba(244,180,26,${(0.14 * pulse).toFixed(3)})`;
+      for (const [rx, ry] of [[1,-1],[1,1],[-1,1],[-1,-1]]) {
+        const dx = rx / Math.SQRT2, dy = ry / Math.SQRT2;
+        const px = -dy * diagR,     py = dx * diagR;
+        ctx.beginPath();
+        ctx.moveTo(sx + px,           sy + py);
+        ctx.lineTo(sx + dx * diagLen, sy + dy * diagLen);
+        ctx.lineTo(sx - px,           sy - py);
+        ctx.lineTo(sx,                sy);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      // Bright core radial glow
+      const core = ctx.createRadialGradient(sx, sy, 0, sx, sy, 5 * pulse);
+      core.addColorStop(0,    `rgba(255,249,210,${(0.95 * pulse).toFixed(3)})`);
+      core.addColorStop(0.45, `rgba(244,180,26,${(0.65 * pulse).toFixed(3)})`);
+      core.addColorStop(1,    'rgba(244,180,26,0)');
+      ctx.fillStyle = core;
+      ctx.beginPath();
+      ctx.arc(sx, sy, 5 * pulse, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    /* ── Main requestAnimationFrame loop ─────────────────────── */
+    function loop() {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      const W = canvas.clientWidth;
-      const H = canvas.clientHeight;
-      if (!W || !H) return;
-      if (canvas.width !== W * dpr || canvas.height !== H * dpr) {
-        canvas.width  = W * dpr;
-        canvas.height = H * dpr;
+      const W   = canvas.clientWidth;
+      const H   = canvas.clientHeight;
+      if (!W || !H) { rafRef.current = requestAnimationFrame(loop); return; }
+
+      if (canvas.width  !== Math.round(W * dpr) ||
+          canvas.height !== Math.round(H * dpr)) {
+        canvas.width  = Math.round(W * dpr);
+        canvas.height = Math.round(H * dpr);
       }
 
       const ctx = canvas.getContext('2d');
       ctx.save();
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.scale(dpr, dpr);
+      ctx.clearRect(0, 0, W, H);
 
-      const mx  = curRef.current.x;
-      const my  = curRef.current.y;
-      const t   = timeRef.current;
-      const IW  = window.innerWidth  || 1440;
-      const IH  = window.innerHeight || 800;
+      S.t += 0.014;
+      const pulse  = 0.88 + Math.sin(S.t * 1.1) * 0.12;
+      const isMob  = W < 768;
+      const sx     = W * 0.72;
+      const sy     = H * 0.27;
+      const armLen = (isMob ? 14 : 24) * pulse;
 
-      // Normalised mouse (0–1) across full viewport
-      const normX = mx / IW;
-      const normY = my / IH;
+      /* Stardust — spawns when mouse within ~250px of star */
+      const mdx = S.mouse.x - sx, mdy = S.mouse.y - sy;
+      if (Math.sqrt(mdx * mdx + mdy * mdy) < 250 && Math.random() < 0.28) {
+        const a  = Math.random() * Math.PI * 2;
+        const sp = 0.2 + Math.random() * 0.5;
+        S.dust.push({
+          x:    sx + (Math.random() - 0.5) * 46,
+          y:    sy + (Math.random() - 0.5) * 46,
+          vx:   Math.cos(a) * sp,
+          vy:   Math.sin(a) * sp - 0.14,
+          life: 0.72 + Math.random() * 0.28,
+          r:    0.7  + Math.random() * 1.35,
+        });
+        if (S.dust.length > 55) S.dust.shift();
+      }
 
-      // Formation centre — gentle drift with mouse
-      const cx = W * 0.50 + (normX - 0.5) * 44;
-      const cy = H * 0.46 + (normY - 0.5) * 30;
-
-      // Pseudo-3D perspective parameters driven by mouse
-      const yScale = 0.48 + normX * 0.24;        // 0.48–0.72  (X-tilt)
-      const xShear = (normY - 0.5) * 0.16;       // ±0.08      (Y-tilt)
-
-      const N     = 22;
-      const STEPS = 64;
-
-      for (let i = 0; i < N; i++) {
-        const rBase = 20 + i * 15;
-
+      S.dust = S.dust.filter(p => p.life > 0.016);
+      for (const p of S.dust) {
+        p.x  += p.vx;
+        p.y  += p.vy;
+        p.vy += 0.007;
+        p.life *= 0.965;
         ctx.beginPath();
-        for (let j = 0; j <= STEPS; j++) {
-          const angle = (j / STEPS) * Math.PI * 2;
-          // Multi-frequency organic distortion
-          const d =
-            Math.sin(angle * 3 + t       + i * 0.42) * rBase * 0.22 +
-            Math.sin(angle * 5 - t * 1.4 + i * 0.28) * rBase * 0.11 +
-            Math.sin(angle * 7 + t * 0.9 + i * 0.17) * rBase * 0.055;
-          const r    = rBase + d;
-          const cosA = Math.cos(angle);
-          const sinA = Math.sin(angle);
-          // Apply perspective transform
-          const px = cx + cosA * r + sinA * r * xShear;
-          const py = cy + sinA * r * yScale + cosA * r * xShear * 0.35;
-          j === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
-        }
-        ctx.closePath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(244,180,26,${(p.life * 0.42).toFixed(3)})`;
+        ctx.fill();
+      }
 
-        const alpha    = Math.max(0.048, 0.28 - i * 0.009);
-        const isGold   = i % 3 === 0 || i % 7 === 2;
-        ctx.strokeStyle = isGold
-          ? `rgba(244,180,26,${(alpha * 1.65).toFixed(3)})`
-          : `rgba(11,13,16,${alpha.toFixed(3)})`;
-        ctx.lineWidth  = isGold ? 1.0 : 0.75;
-        ctx.stroke();
+      /* North Star */
+      draw4Star(ctx, sx, sy, armLen, pulse);
+
+      /* Shooting star */
+      const sh = S.shoot;
+      if (sh.active) {
+        sh.trail.push({ x: sh.x, y: sh.y });
+        if (sh.trail.length > 48) sh.trail.shift();
+
+        // Trail line — opacity modulated by trail-position AND scroll depth
+        const scrollFade = Math.max(0, 1 - S.scrollY / 500);
+        if (sh.trail.length > 1) {
+          ctx.lineCap = 'round';
+          for (let i = 1; i < sh.trail.length; i++) {
+            const prog = i / sh.trail.length;
+            const a    = prog * 0.58 * scrollFade * (1 - (sh.life / sh.maxLife) * 0.55);
+            ctx.beginPath();
+            ctx.moveTo(sh.trail[i - 1].x, sh.trail[i - 1].y);
+            ctx.lineTo(sh.trail[i].x,     sh.trail[i].y);
+            ctx.strokeStyle = `rgba(244,180,26,${a.toFixed(3)})`;
+            ctx.lineWidth   = 0.55 + prog * 1.1;
+            ctx.stroke();
+          }
+        }
+
+        // Lead glow dot
+        const ldFade = Math.max(0, 1 - sh.life / sh.maxLife) * scrollFade;
+        const lg = ctx.createRadialGradient(sh.x, sh.y, 0, sh.x, sh.y, 12);
+        lg.addColorStop(0,    `rgba(255,250,200,${(0.92 * ldFade).toFixed(3)})`);
+        lg.addColorStop(0.38, `rgba(244,180,26,${(0.58 * ldFade).toFixed(3)})`);
+        lg.addColorStop(1,    'rgba(244,180,26,0)');
+        ctx.fillStyle = lg;
+        ctx.beginPath();
+        ctx.arc(sh.x, sh.y, 12, 0, Math.PI * 2);
+        ctx.fill();
+
+        sh.x  += sh.vx;  sh.y  += sh.vy;
+        sh.vx *= 0.958;  sh.vy *= 0.958;
+        sh.life++;
+
+        if (sh.life >= sh.maxLife || sh.x > W + 60 || sh.y > H + 60 || sh.x < -60) {
+          sh.active = false;
+        }
       }
 
       ctx.restore();
-    }
-
-    function loop() {
-      // Smooth lerp toward mouse target
-      curRef.current.x += (mouseRef.current.x - curRef.current.x) * 0.036;
-      curRef.current.y += (mouseRef.current.y - curRef.current.y) * 0.036;
-      timeRef.current  += 0.008;
-      draw();
       rafRef.current = requestAnimationFrame(loop);
     }
 
@@ -176,6 +284,7 @@ function WaveCanvas() {
     return () => {
       cancelAnimationFrame(rafRef.current);
       window.removeEventListener('mousemove', onMouse);
+      window.removeEventListener('scroll',    onScroll);
     };
   }, []);
 
@@ -183,6 +292,7 @@ function WaveCanvas() {
     <canvas
       ref={canvasRef}
       className="absolute inset-0 w-full h-full"
+      style={{ pointerEvents: 'none' }}
       aria-hidden="true"
     />
   );
@@ -484,20 +594,18 @@ export default function Home() {
 
       <main>
 
-        {/* ══ §2  HERO — 85 vh cap, left text / right canvas ══════════ */}
-        <section className="relative bg-[#F2F0EC] pt-[64px] overflow-hidden">
+        {/* ══ §2  HERO — strict 85 vh, North Star canvas system ═══════ */}
+        <section className="relative bg-[#F2F0EC] overflow-hidden">
 
-          {/* Hero body — height capped at 85 vh */}
-          <div className="relative min-h-[85vh] flex items-center">
+          {/* Hero body — strict 85 vh container */}
+          <div className="relative h-[85vh] flex items-center overflow-hidden">
 
-            {/* Interactive canvas — right 55 % of section (desktop only) */}
-            <div className="absolute inset-y-0 right-0 w-[55%] hidden md:block">
-              <WaveCanvas />
-            </div>
+            {/* Full-span North Star canvas — absolute, pointer-events:none */}
+            <NorthStarCanvas />
 
-            {/* Editorial text block — left column */}
-            <div className="relative z-10 w-full max-w-[1440px] mx-auto px-8 md:px-14 py-20">
-              <div className="flex flex-col items-center md:items-start text-center md:text-left md:max-w-[46%]">
+            {/* Editorial text block — Peak XV proportions */}
+            <div className="relative z-10 w-full max-w-[1440px] mx-auto px-8 md:px-16 xl:px-24 pt-[64px]">
+              <div className="flex flex-col items-center md:items-start text-center md:text-left md:max-w-[44%] lg:max-w-[40%]">
 
                 {/* Eyebrow */}
                 <div className="flex items-center justify-center md:justify-start gap-4 mb-9">
