@@ -678,22 +678,9 @@ function FounderTicker() {
   const track = [...TICKER_CARDS, ...TICKER_CARDS, ...TICKER_CARDS, ...TICKER_CARDS];
 
   return (
-    /* Transparent — photos sit directly on the off-white canvas */
-    <div className="overflow-hidden" style={{ borderTop: '1px solid rgba(11,13,16,0.07)' }}>
-
-      {/* Eyebrow — left-padded, same rhythm as other sections */}
-      <div className="flex items-center gap-4 px-6 md:px-14 xl:px-20 pt-10 pb-8">
-        <span className="w-8 h-px bg-[#F4B41A]" />
-        <span
-          className="font-sans text-[10px] uppercase tracking-[0.32em]"
-          style={{ color: 'rgba(11,13,16,0.38)' }}
-        >
-          Founders We've Worked With
-        </span>
-      </div>
-
-      {/* Ticker track — hover pauses via .marquee-track:hover in globals.css */}
-      <div className="marquee-track flex pb-12">
+    /* No border, no label, no padding — photos flow directly from the hero canvas */
+    <div className="overflow-hidden">
+      <div className="marquee-track flex pb-14">
         {track.map((card, i) => (
           <FounderCard key={i} card={card} />
         ))}
