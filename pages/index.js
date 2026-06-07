@@ -57,7 +57,7 @@ function SunwardMark({ size = 36 }) {
           </g>
         );
       })}
-      <circle cx="50" cy="50" r="23" fill="#1E2342" />
+      <circle cx="50" cy="50" r="23" fill="#0B0D10" />
       <circle cx="50" cy="50" r="18.5" stroke="#F4B41A" strokeWidth="0.6" strokeOpacity="0.30" fill="none" />
       <circle cx="50" cy="50" r="13"   stroke="#F4B41A" strokeWidth="0.4" strokeOpacity="0.18" fill="none" />
       <polygon points="50,36 47.5,50.5 50,48.5 52.5,50.5" fill="#F4B41A" />
@@ -154,7 +154,7 @@ function WaveCanvas() {
         const isGold   = i % 3 === 0 || i % 7 === 2;
         ctx.strokeStyle = isGold
           ? `rgba(244,180,26,${(alpha * 1.65).toFixed(3)})`
-          : `rgba(30,35,66,${alpha.toFixed(3)})`;
+          : `rgba(11,13,16,${alpha.toFixed(3)})`;
         ctx.lineWidth  = isGold ? 1.0 : 0.75;
         ctx.stroke();
       }
@@ -392,7 +392,7 @@ export default function Home() {
           className="absolute inset-0"
           style={{
             background:
-              'linear-gradient(to bottom, transparent 0%, rgba(30,35,66,0.14) 12%, rgba(30,35,66,0.14) 88%, transparent 100%)',
+              'linear-gradient(to bottom, transparent 0%, rgba(11,13,16,0.14) 12%, rgba(11,13,16,0.14) 88%, transparent 100%)',
           }}
         />
         {/* Gold diamond node — at mid-hero text baseline */}
@@ -404,7 +404,7 @@ export default function Home() {
 
       {/* ══ §1  HEADER ══════════════════════════════════════════════ */}
       <header
-        className={`fixed inset-x-0 top-0 z-40 bg-[#080E1F] transition-all duration-300 ${
+        className={`fixed inset-x-0 top-0 z-40 bg-[#07080A] transition-all duration-300 ${
           navScrolled ? 'shadow-[0_1px_0_rgba(255,255,255,0.07)]' : ''
         }`}
       >
@@ -436,10 +436,10 @@ export default function Home() {
           <div className="flex items-center gap-4">
             <a
               href="mailto:info@sunwardgrowth.com"
-              className="group hidden md:inline-flex items-center gap-2 border border-[#F4B41A] text-white font-sans text-[11.5px] font-medium px-5 py-[10px] rounded-sm tracking-[0.04em] transition-all duration-250 hover:bg-[#F4B41A] hover:text-[#1E2342]"
+              className="group hidden md:inline-flex items-center gap-2 border border-[#F4B41A] text-white font-sans text-[11.5px] font-medium px-5 py-[10px] rounded-sm tracking-[0.04em] transition-all duration-250 hover:bg-[#F4B41A] hover:text-[#0B0D10]"
             >
               Book a Discovery Call
-              <span className="text-[#F4B41A] group-hover:text-[#1E2342] transition-colors duration-250">↗</span>
+              <span className="text-[#F4B41A] group-hover:text-[#0B0D10] transition-colors duration-250">↗</span>
             </a>
             <button
               className="md:hidden p-2 -mr-1"
@@ -456,7 +456,7 @@ export default function Home() {
 
         {/* Mobile drawer */}
         <div
-          className={`md:hidden overflow-hidden transition-all duration-300 bg-[#080E1F] border-t border-white/[0.08] ${
+          className={`md:hidden overflow-hidden transition-all duration-300 bg-[#07080A] border-t border-white/[0.08] ${
             menuOpen ? 'max-h-80' : 'max-h-0'
           }`}
         >
@@ -474,7 +474,7 @@ export default function Home() {
             <a
               href="mailto:info@sunwardgrowth.com"
               onClick={() => setMenuOpen(false)}
-              className="mt-1 inline-flex items-center gap-2 border border-[#F4B41A] text-white font-sans text-[13px] font-medium px-5 py-3 rounded-sm hover:bg-[#F4B41A] hover:text-[#1E2342] transition-all"
+              className="mt-1 inline-flex items-center gap-2 border border-[#F4B41A] text-white font-sans text-[13px] font-medium px-5 py-3 rounded-sm hover:bg-[#F4B41A] hover:text-[#0B0D10] transition-all"
             >
               Book a Discovery Call ↗
             </a>
@@ -485,7 +485,7 @@ export default function Home() {
       <main>
 
         {/* ══ §2  HERO — 85 vh cap, left text / right canvas ══════════ */}
-        <section className="relative bg-[#FDF4DC] pt-[64px] overflow-hidden">
+        <section className="relative bg-[#F2F0EC] pt-[64px] overflow-hidden">
 
           {/* Hero body — height capped at 85 vh */}
           <div className="relative min-h-[85vh] flex items-center">
@@ -502,7 +502,7 @@ export default function Home() {
                 {/* Eyebrow */}
                 <div className="flex items-center justify-center md:justify-start gap-4 mb-9">
                   <span className="w-8 h-px bg-[#F4B41A]" />
-                  <span className="font-sans text-[10px] uppercase tracking-[0.32em] text-[#1E2342]/40">
+                  <span className="font-sans text-[10px] uppercase tracking-[0.32em] text-[#0B0D10]/40">
                     Growth Advisory · Est. 2009
                   </span>
                   <span className="w-8 h-px bg-[#F4B41A] md:hidden" />
@@ -510,7 +510,7 @@ export default function Home() {
 
                 {/* Headline — crisp editorial scale, two lines */}
                 <h1
-                  className="font-serif text-[#1E2342] leading-[1.10] tracking-[-0.020em] mb-7"
+                  className="font-serif text-[#0B0D10] leading-[1.10] tracking-[-0.020em] mb-7"
                   style={{ fontSize: 'clamp(2.4rem, 3.5vw, 4.2rem)' }}
                 >
                   Your North Star for
@@ -520,7 +520,7 @@ export default function Home() {
 
                 {/* Tagline */}
                 <p
-                  className="font-sans font-light text-[#1E2342]/48 tracking-[0.065em] mb-12 leading-relaxed max-w-sm md:max-w-none"
+                  className="font-sans font-light text-[#0B0D10]/48 tracking-[0.065em] mb-12 leading-relaxed max-w-sm md:max-w-none"
                   style={{ fontSize: 'clamp(0.80rem, 0.95vw, 0.90rem)' }}
                 >
                   Strategy{' '}
@@ -534,14 +534,14 @@ export default function Home() {
                 <div className="flex flex-col sm:flex-row items-center md:items-start gap-4">
                   <a
                     href="mailto:info@sunwardgrowth.com"
-                    className="inline-flex items-center gap-2.5 bg-[#1E2342] text-[#FAF9F6] font-sans text-[12px] font-medium tracking-[0.05em] px-7 py-[13px] rounded-sm hover:bg-[#F4B41A] hover:text-[#1E2342] hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(244,180,26,0.30)] transition-all duration-300"
+                    className="inline-flex items-center gap-2.5 bg-[#0B0D10] text-[#FAF9F6] font-sans text-[12px] font-medium tracking-[0.05em] px-7 py-[13px] rounded-sm hover:bg-[#F4B41A] hover:text-[#0B0D10] hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(244,180,26,0.30)] transition-all duration-300"
                   >
                     Book a Free Discovery Call
                     <span className="text-[14px] leading-none">↗</span>
                   </a>
                   <a
                     href="#portfolio"
-                    className="inline-flex items-center gap-2 border border-[rgba(30,35,66,0.22)] text-[#1E2342] font-sans text-[12px] font-medium tracking-[0.05em] px-7 py-[13px] rounded-sm hover:border-[#F4B41A] hover:bg-[rgba(244,180,26,0.07)] transition-all duration-300"
+                    className="inline-flex items-center gap-2 border border-[rgba(11,13,16,0.22)] text-[#0B0D10] font-sans text-[12px] font-medium tracking-[0.05em] px-7 py-[13px] rounded-sm hover:border-[#F4B41A] hover:bg-[rgba(244,180,26,0.07)] transition-all duration-300"
                   >
                     View Our Work
                   </a>
@@ -555,7 +555,7 @@ export default function Home() {
         {/* ══ §FOUNDERS — vertical img/text cards, 2-col grid ════════ */}
         <section
           id="team-band"
-          className="scroll-mt-[64px] bg-[#FDF4DC] py-14 px-6 md:px-14 border-t border-[rgba(30,35,66,0.07)]"
+          className="scroll-mt-[64px] bg-[#F2F0EC] py-14 px-6 md:px-14 border-t border-[rgba(11,13,16,0.07)]"
         >
           <div className="max-w-[700px] mx-auto grid grid-cols-1 sm:grid-cols-2 gap-5">
 
@@ -564,8 +564,8 @@ export default function Home() {
                 key={f.index}
                 className="group cursor-default overflow-hidden rounded-[3px] flex flex-col
                   transition-all duration-400 ease-out
-                  hover:-translate-y-2 hover:shadow-[0_18px_56px_rgba(30,35,66,0.14)]"
-                style={{ boxShadow: '0 4px 18px rgba(30,35,66,0.09)' }}
+                  hover:-translate-y-2 hover:shadow-[0_18px_56px_rgba(11,13,16,0.14)]"
+                style={{ boxShadow: '0 4px 18px rgba(11,13,16,0.09)' }}
               >
                 {/* Photo — top, portrait aspect */}
                 <div className="relative overflow-hidden" style={{ aspectRatio: '4/5' }}>
@@ -580,7 +580,7 @@ export default function Home() {
                 </div>
 
                 {/* Text — bottom, tight */}
-                <div className="bg-[#FFFDF5] border border-t-0 border-[rgba(180,130,20,0.14)] px-5 py-4 flex flex-col gap-1.5 relative overflow-hidden">
+                <div className="bg-white border border-t-0 border-[rgba(180,130,20,0.14)] px-5 py-4 flex flex-col gap-1.5 relative overflow-hidden">
                   {/* Gold left bar on hover */}
                   <span className="absolute left-0 top-0 bottom-0 w-[3px] bg-[#F4B41A] origin-top scale-y-0 group-hover:scale-y-100 transition-transform duration-400 ease-out" />
 
@@ -588,25 +588,25 @@ export default function Home() {
                     {f.role}
                   </span>
                   <h3
-                    className="font-serif text-[#1E2342] font-semibold leading-tight"
+                    className="font-serif text-[#0B0D10] font-semibold leading-tight"
                     style={{ fontSize: 'clamp(1.05rem, 1.6vw, 1.35rem)' }}
                   >
                     {f.name}
                   </h3>
-                  <p className="font-sans text-[#1E2342]/48 text-[9px] tracking-[0.07em] font-light leading-relaxed">
+                  <p className="font-sans text-[#0B0D10]/48 text-[9px] tracking-[0.07em] font-light leading-relaxed">
                     {f.credentials}
                   </p>
-                  <p className="font-sans text-[#1E2342]/58 text-[11.5px] font-light leading-[1.75] pt-1">
+                  <p className="font-sans text-[#0B0D10]/58 text-[11.5px] font-light leading-[1.75] pt-1">
                     {f.bio.split('.').slice(0, 2).join('.') + '.'}
                   </p>
-                  <span className="font-sans text-[7.5px] uppercase tracking-[0.22em] text-[#1E2342]/18 pt-1">
+                  <span className="font-sans text-[7.5px] uppercase tracking-[0.22em] text-[#0B0D10]/18 pt-1">
                     {f.index} / 02
                   </span>
                 </div>
               </div>
             ))}
 
-            <p className="sm:col-span-2 pt-2 text-center font-sans text-[8px] uppercase tracking-[0.28em] text-[#1E2342]/22 font-light">
+            <p className="sm:col-span-2 pt-2 text-center font-sans text-[8px] uppercase tracking-[0.28em] text-[#0B0D10]/22 font-light">
               The people behind Sunward Growth Advisory
             </p>
           </div>
@@ -615,36 +615,36 @@ export default function Home() {
         {/* ══ §3  PORTFOLIO MATRIX GRID ════════════════════════════════ */}
         <section
           id="portfolio"
-          className="scroll-mt-[64px] bg-[#FDF4DC] px-6 md:px-14 xl:px-20 py-24 border-t border-[rgba(30,35,66,0.08)]"
+          className="scroll-mt-[64px] bg-[#F2F0EC] px-6 md:px-14 xl:px-20 py-24 border-t border-[rgba(11,13,16,0.08)]"
         >
           <div className="max-w-[1440px] mx-auto">
 
             <div className="mb-16 max-w-4xl">
               <h2
-                className="font-serif text-[#1E2342] font-semibold leading-[1.08] tracking-[-0.024em] mb-5"
+                className="font-serif text-[#0B0D10] font-semibold leading-[1.08] tracking-[-0.024em] mb-5"
                 style={{ fontSize: 'clamp(2.2rem, 5.5vw, 5rem)' }}
               >
                 Seed. Venture. Growth.{' '}
                 <span className="italic font-light">Beyond.</span>
               </h2>
               <p
-                className="font-sans font-light text-[#1E2342]/48 leading-relaxed tracking-[0.02em]"
+                className="font-sans font-light text-[#0B0D10]/48 leading-relaxed tracking-[0.02em]"
                 style={{ fontSize: 'clamp(0.92rem, 1.2vw, 1.04rem)' }}
               >
                 We're a partner across stages, borders, and breakthroughs.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[1px] bg-[rgba(30,35,66,0.10)] border border-[rgba(30,35,66,0.10)]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[1px] bg-[rgba(11,13,16,0.10)] border border-[rgba(11,13,16,0.10)]">
               {PORTFOLIO.map((item, i) => (
                 <div
                   key={i}
                   className={`group relative min-h-[240px] md:min-h-[256px] overflow-hidden cursor-pointer transition-all duration-300 hover:z-10 ${
                     item.logo
-                      ? 'bg-[#FDF4DC] hover:scale-[1.02] hover:shadow-[0_20px_52px_rgba(30,35,66,0.13)]'
+                      ? 'bg-[#F2F0EC] hover:scale-[1.02] hover:shadow-[0_20px_52px_rgba(11,13,16,0.13)]'
                       : item.segment
-                        ? 'bg-[#0D1528]'
-                        : 'bg-[#FDF4DC] hover:scale-[1.02] hover:shadow-[0_20px_52px_rgba(30,35,66,0.13)]'
+                        ? 'bg-[#0B0D10]'
+                        : 'bg-[#F2F0EC] hover:scale-[1.02] hover:shadow-[0_20px_52px_rgba(11,13,16,0.13)]'
                   }`}
                 >
                   {/* Gold bottom sweep — on all cards */}
@@ -659,13 +659,13 @@ export default function Home() {
                           alt={item.name}
                           className="max-h-[88px] max-w-[65%] object-contain"
                         />
-                        <span className="mt-4 font-sans text-[8.5px] uppercase tracking-[0.26em] font-semibold text-[#1E2342]/28">
+                        <span className="mt-4 font-sans text-[8.5px] uppercase tracking-[0.26em] font-semibold text-[#0B0D10]/28">
                           {item.tag}
                         </span>
                       </div>
 
                       {/* Logo card — hover: dark, logo top-left + blurb + READ MORE */}
-                      <div className="absolute inset-0 bg-[#0D1528] p-7 md:p-8 flex flex-col justify-between opacity-0 translate-y-4 pointer-events-none transition-all duration-[380ms] ease-out group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto">
+                      <div className="absolute inset-0 bg-[#0B0D10] p-7 md:p-8 flex flex-col justify-between opacity-0 translate-y-4 pointer-events-none transition-all duration-[380ms] ease-out group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto">
                         <img
                           src={item.logo}
                           alt={item.name}
@@ -728,18 +728,18 @@ export default function Home() {
                         </span>
                         <div>
                           <h3
-                            className="font-serif text-[#1E2342] font-semibold leading-snug mb-2.5"
+                            className="font-serif text-[#0B0D10] font-semibold leading-snug mb-2.5"
                             style={{ fontSize: 'clamp(1.02rem, 1.4vw, 1.28rem)' }}
                           >
                             {item.name}
                           </h3>
-                          <p className="font-sans text-[#1E2342]/45 text-[12.5px] font-light leading-relaxed">
+                          <p className="font-sans text-[#0B0D10]/45 text-[12.5px] font-light leading-relaxed">
                             {item.teaser}
                           </p>
                         </div>
                       </div>
 
-                      <div className="absolute inset-0 bg-[#0D1528] p-7 md:p-8 flex flex-col justify-between opacity-0 translate-y-5 pointer-events-none transition-all duration-[400ms] ease-out group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto">
+                      <div className="absolute inset-0 bg-[#0B0D10] p-7 md:p-8 flex flex-col justify-between opacity-0 translate-y-5 pointer-events-none transition-all duration-[400ms] ease-out group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto">
                         <span className="font-sans text-[8.5px] uppercase tracking-[0.28em] font-semibold text-[#F4B41A]">
                           {item.tag}
                         </span>
@@ -776,19 +776,19 @@ export default function Home() {
         {/* ══ §4  MANIFESTO ════════════════════════════════════════════ */}
         <section
           id="manifesto"
-          className="scroll-mt-[64px] bg-[#FDF4DC] px-6 md:px-14 xl:px-20 py-28 border-t border-[rgba(30,35,66,0.08)]"
+          className="scroll-mt-[64px] bg-[#F2F0EC] px-6 md:px-14 xl:px-20 py-28 border-t border-[rgba(11,13,16,0.08)]"
         >
           <div className="max-w-[1440px] mx-auto grid md:grid-cols-[2fr_3fr] gap-20 md:gap-36 items-center">
 
             <blockquote
-              className="font-serif italic font-light text-[#1E2342] leading-[1.42] pl-8 border-l-[2px] border-[#F4B41A]"
+              className="font-serif italic font-light text-[#0B0D10] leading-[1.42] pl-8 border-l-[2px] border-[#F4B41A]"
               style={{ fontSize: 'clamp(1.45rem, 2.6vw, 2.5rem)' }}
             >
               "Great products deserve great business systems."
             </blockquote>
 
-            <div className="space-y-6 font-sans font-light text-[#1E2342]/54 text-[15px] leading-[1.92]">
-              <p className="text-[#1E2342] font-normal" style={{ fontSize: 'clamp(1rem, 1.2vw, 1.08rem)' }}>
+            <div className="space-y-6 font-sans font-light text-[#0B0D10]/54 text-[15px] leading-[1.92]">
+              <p className="text-[#0B0D10] font-normal" style={{ fontSize: 'clamp(1rem, 1.2vw, 1.08rem)' }}>
                 We don't just advise. We build alongside you.
               </p>
               <p>
@@ -808,8 +808,8 @@ export default function Home() {
         <section
           id="case-studies"
           ref={csRef}
-          className={`scroll-mt-[64px] px-6 md:px-14 xl:px-20 py-28 border-t border-[rgba(30,35,66,0.08)] transition-colors duration-700 ${
-            csDark ? 'bg-[#0D1528]' : 'bg-[#FDF4DC]'
+          className={`scroll-mt-[64px] px-6 md:px-14 xl:px-20 py-28 border-t border-[rgba(11,13,16,0.08)] transition-colors duration-700 ${
+            csDark ? 'bg-[#0B0D10]' : 'bg-[#F2F0EC]'
           }`}
         >
           <div className="max-w-[1440px] mx-auto">
@@ -817,19 +817,19 @@ export default function Home() {
             <div className="mb-20 max-w-3xl">
               <div className="flex items-center gap-4 mb-8">
                 <span className="w-8 h-px bg-[#F4B41A]" />
-                <span className={`font-sans text-[10px] uppercase tracking-[0.3em] transition-colors duration-700 ${csDark ? 'text-[#F4B41A]' : 'text-[#1E2342]/38'}`}>
+                <span className={`font-sans text-[10px] uppercase tracking-[0.3em] transition-colors duration-700 ${csDark ? 'text-[#F4B41A]' : 'text-[#0B0D10]/38'}`}>
                   Client Work
                 </span>
               </div>
               <h2
-                className={`font-serif font-semibold leading-[1.1] tracking-[-0.022em] mb-5 transition-colors duration-700 ${csDark ? 'text-white' : 'text-[#1E2342]'}`}
+                className={`font-serif font-semibold leading-[1.1] tracking-[-0.022em] mb-5 transition-colors duration-700 ${csDark ? 'text-white' : 'text-[#0B0D10]'}`}
                 style={{ fontSize: 'clamp(2rem, 4.5vw, 4.2rem)' }}
               >
                 What we've{' '}
                 <span className="italic font-light">built together.</span>
               </h2>
               <p
-                className={`font-sans font-light leading-relaxed tracking-[0.02em] transition-colors duration-700 ${csDark ? 'text-white/48' : 'text-[#1E2342]/48'}`}
+                className={`font-sans font-light leading-relaxed tracking-[0.02em] transition-colors duration-700 ${csDark ? 'text-white/48' : 'text-[#0B0D10]/48'}`}
                 style={{ fontSize: 'clamp(0.92rem, 1.2vw, 1.04rem)' }}
               >
                 Each engagement starts with diagnosis. Every outcome is earned.
@@ -840,7 +840,7 @@ export default function Home() {
               {CASE_STUDIES.map((cs) => (
                 <div
                   key={cs.index}
-                  className={`border transition-colors duration-700 ${csDark ? 'border-white/[0.09]' : 'border-[rgba(30,35,66,0.09)]'}`}
+                  className={`border transition-colors duration-700 ${csDark ? 'border-white/[0.09]' : 'border-[rgba(11,13,16,0.09)]'}`}
                 >
                   <div className="p-8 md:p-12 grid md:grid-cols-[88px_1fr_1fr] gap-8 md:gap-14">
 
@@ -848,14 +848,14 @@ export default function Home() {
                       <span className="font-serif text-[#F4B41A] font-bold leading-none" style={{ fontSize: 'clamp(2rem, 3vw, 2.8rem)' }}>
                         {cs.index}
                       </span>
-                      <span className={`font-sans text-[9px] uppercase tracking-[0.25em] md:mt-1 transition-colors duration-700 ${csDark ? 'text-white/28' : 'text-[#1E2342]/30'}`}>
+                      <span className={`font-sans text-[9px] uppercase tracking-[0.25em] md:mt-1 transition-colors duration-700 ${csDark ? 'text-white/28' : 'text-[#0B0D10]/30'}`}>
                         {cs.sector}
                       </span>
                     </div>
 
                     <div>
                       <h3
-                        className={`font-serif font-semibold leading-snug mb-4 transition-colors duration-700 ${csDark ? 'text-white' : 'text-[#1E2342]'}`}
+                        className={`font-serif font-semibold leading-snug mb-4 transition-colors duration-700 ${csDark ? 'text-white' : 'text-[#0B0D10]'}`}
                         style={{ fontSize: 'clamp(1.12rem, 1.6vw, 1.5rem)' }}
                       >
                         {cs.name}
@@ -865,7 +865,7 @@ export default function Home() {
                       </p>
                       <p
                         className="font-sans font-light text-[14px] leading-[1.88] transition-colors duration-700"
-                        style={{ color: csDark ? 'rgba(255,255,255,0.82)' : 'rgba(30,35,66,0.68)' }}
+                        style={{ color: csDark ? 'rgba(255,255,255,0.82)' : 'rgba(11,13,16,0.68)' }}
                       >
                         {cs.situation}
                       </p>
@@ -880,26 +880,26 @@ export default function Home() {
                           <li
                             key={li}
                             className="flex items-start gap-2.5 font-sans font-light text-[13.5px] leading-snug transition-colors duration-700"
-                            style={{ color: csDark ? 'rgba(255,255,255,0.85)' : 'rgba(30,35,66,0.70)' }}
+                            style={{ color: csDark ? 'rgba(255,255,255,0.85)' : 'rgba(11,13,16,0.70)' }}
                           >
                             <span className="text-[#F4B41A] mt-[3px] flex-shrink-0 text-[10px]">→</span>
                             {line}
                           </li>
                         ))}
                       </ul>
-                      <div className={`border-t pt-6 transition-colors duration-700 ${csDark ? 'border-white/[0.09]' : 'border-[rgba(30,35,66,0.09)]'}`}>
+                      <div className={`border-t pt-6 transition-colors duration-700 ${csDark ? 'border-white/[0.09]' : 'border-[rgba(11,13,16,0.09)]'}`}>
                         <p className="font-sans text-[9px] uppercase tracking-[0.22em] text-[#F4B41A]/70 mb-1.5">
                           Outcome
                         </p>
                         <p
-                          className={`font-serif italic font-light leading-snug mb-1 transition-colors duration-700 ${csDark ? 'text-white' : 'text-[#1E2342]'}`}
+                          className={`font-serif italic font-light leading-snug mb-1 transition-colors duration-700 ${csDark ? 'text-white' : 'text-[#0B0D10]'}`}
                           style={{ fontSize: 'clamp(1rem, 1.3vw, 1.22rem)' }}
                         >
                           {cs.outcome}
                         </p>
                         <p
                           className="font-sans font-light text-[12.5px] leading-relaxed transition-colors duration-700"
-                          style={{ color: csDark ? 'rgba(255,255,255,0.68)' : 'rgba(30,35,66,0.58)' }}
+                          style={{ color: csDark ? 'rgba(255,255,255,0.68)' : 'rgba(11,13,16,0.58)' }}
                         >
                           {cs.outcomeDetail}
                         </p>
@@ -914,7 +914,7 @@ export default function Home() {
         </section>
 
         {/* ══ §6  METRICS + FOOTER ════════════════════════════════════ */}
-        <section className="bg-[#0D1528]">
+        <section className="bg-[#0B0D10]">
 
           <div
             ref={metricsRef}
@@ -961,7 +961,7 @@ export default function Home() {
         {/* ══ FOOTER ═════════════════════════════════════════════════ */}
         <footer
           id="footer"
-          className="bg-[#0D1528] border-t border-white/[0.06] px-6 md:px-14 xl:px-20 pt-14 pb-8"
+          className="bg-[#0B0D10] border-t border-white/[0.06] px-6 md:px-14 xl:px-20 pt-14 pb-8"
         >
           <div className="max-w-[1440px] mx-auto">
 
