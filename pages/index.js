@@ -678,22 +678,22 @@ const TICKER_CARDS = [
   {
     company: 'Kolkata Chai Company',
     founder:  'Ayan Sanyal',
-    photo:    '/Kolkata chai company founder.jpg',
-    logo:     '/Kolkata chai company.png',
+    photo:    '/kolkata-chai-founder.jpg',
+    logo:     '/kolkata-chai-logo.png',
     sector:   'Premium F&B',
   },
   {
     company: 'Mahati Wellness',
     founder:  'Aaditya Bhardwaj',
-    photo:    '/Mahati wellness founder.jpg',
-    logo:     '/mahati_wellness-removebg-preview.png',
+    photo:    '/mahati-founder.jpg',
+    logo:     '/mahati-logo.png',
     sector:   'Wellness',
   },
   {
     company: 'Manam Chocolates',
     founder:  'Chaitanya Muppala',
-    photo:    '/Manham chocolates founder.jpg',
-    logo:     '/manam_chocolates-removebg-preview.png',
+    photo:    '/manam-chocolates-founder.jpg',
+    logo:     '/manam-chocolates-logo.png',
     sector:   'Premium F&B',
   },
 ];
