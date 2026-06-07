@@ -68,107 +68,163 @@ function SunwardMark({ size = 36 }) {
   );
 }
 
-/* ─────────────────────────────────────────────── HERO CANVAS 3D
-   One-shot 3D perspective shooting star: bottom-left → top-right.
+/* ─────────────────────────────────────────────── HERO CANVAS 3D  v2
+   3D North Star Constellation Matrix
 
-   Coordinate system (world space):
-     +X = right,  -X = left  (offset from canvas centre)
-     +Y = down,   -Y = up    (offset from canvas centre, canvas-aligned)
-     +Z = away from camera,  −Z = past camera (behind viewer)
+   World coordinate system  (+X right, +Y down, +Z away from camera)
+   Perspective projection   scale = FL / (FL + Z)
+                            screenX = X·scale + W/2
+                            screenY = Y·scale + H/2
 
-   Perspective projection:
-     scale   = focalLength / (focalLength + Z)
-     screenX = X * scale + W * 0.5
-     screenY = Y * scale + H * 0.5
-
-   Animation lifecycle (one-shot, no loop):
-     'launch'  star travels from bottom-left deep space toward upper-right.
-               Projects from ~(10%, 85%) to ~(74%, 20%) of canvas.
-               40-point trail + proximity bloom + lens spikes on close pass.
-     'arrive'  30-frame cubic ease-in-out lerp to rest point (74%, 20%).
-               Flash bloom dissolves while gold 4-point star fades in.
-     'rest'    permanent pulsing 4-point gold star at upper-right. No reset. */
+   Systems:
+     • 120 stardust particles, floating with gentle ambient drift
+     • Y-axis + X-axis rotation matrix driven by mouse position (eased)
+     • Constellation mesh — faint lines between screen-space neighbours
+     • Scroll launch — Z-boost rushes particles toward viewer (bokeh)
+       + 6 diagonal shooting stars burst from the North Star centre
+     • Pulsing 4-point gold North Star permanently at canvas centre      */
 function HeroCanvas3D() {
   const canvasRef = useRef(null);
   const rafRef    = useRef(null);
-  const stateRef  = useRef({
-    phase:      'launch',
-    timer:      0,
-    star:       null,
-    arriveFrom: null,
-    restPos:    null,
-  });
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const S = stateRef.current;
 
-    const FL = 440;
+    /* ── tuneable constants ──────────────────────────────────────────── */
+    const FL        = 480;   // focal length (px)
+    const N         = 120;   // particle count
+    const SX        = 880;   // world-space spread X
+    const SY        = 680;   // world-space spread Y
+    const SZ_NEAR   = 180;   // minimum Z (near clip)
+    const SZ_FAR    = 2000;  // maximum Z (far clip)
+    const LINE_PX   = 155;   // screen-space proximity threshold for constellation lines
+    const LINE_CAP  = 50;    // max constellation lines drawn per frame
+    const LAUNCH_F  = 150;   // frames for scroll launch effect
+    const LAUNCH_Z  = 1300;  // maximum Z-boost during launch (px)
 
-    function project(x3, y3, z3, W, H) {
-      const dz = FL + z3;
+    /* ── live state ──────────────────────────────────────────────────── */
+    const S = {
+      pts:      [],     // particle objects
+      rotX:     0,      // current eased X rotation (rad)
+      rotY:     0,      // current eased Y rotation (rad)
+      tgtX:     0,      // target X rotation from mouse
+      tgtY:     0,      // target Y rotation from mouse
+      tick:     0,      // frame counter (North Star pulse)
+      cooldown: 0,      // frames until next scroll launch is allowed
+      launching: false,
+      launchT:  0,      // frames elapsed since launch
+      shooters: [],     // active shooting-star objects
+    };
+
+    /* ── rotate a world point around Y then X ───────────────────────── */
+    function rotXY(bx, by, bz, rx, ry) {
+      const cY = Math.cos(ry), sY = Math.sin(ry);
+      const wx =  bx * cY + bz * sY;
+      const wz = -bx * sY + bz * cY;
+      const cX = Math.cos(rx), sX = Math.sin(rx);
+      const wy =  by * cX - wz * sX;
+      const wz2 = by * sX + wz * cX;
+      return [wx, wy, wz2];
+    }
+
+    /* ── perspective project ─────────────────────────────────────────── */
+    function prj(wx, wy, wz, W, H) {
+      const dz = FL + wz;
       if (dz < 1) return null;
       const sc = FL / dz;
-      return { x: x3 * sc + W * 0.5, y: y3 * sc + H * 0.5, sc };
+      return [wx * sc + W * 0.5, wy * sc + H * 0.5, sc];
     }
 
-    /* ── Star spawns at bottom-left deep space, travels to upper-right ── */
-    function mkStar(W, H) {
-      return {
-        x:  -W * 1.307,
-        y:   H * 1.144,
-        z:   1000,
-        vx:  W * 0.021,
-        vy: -H * 0.0192,
-        vz: -16,
-        trail: [],
-      };
-    }
-
-    /* ── 4-point star shape ─────────────────────────────────────────── */
-    function draw4Star(ctx, cx, cy, outerR, innerR, alpha) {
+    /* ── 4-point North Star ──────────────────────────────────────────── */
+    function drawStar(ctx, cx, cy, R, r, a) {
       ctx.save();
       ctx.translate(cx, cy);
       ctx.beginPath();
       for (let i = 0; i < 8; i++) {
-        const angle = (i * Math.PI) / 4 - Math.PI / 2;
-        const r = i % 2 === 0 ? outerR : innerR;
-        if (i === 0) ctx.moveTo(Math.cos(angle) * r, Math.sin(angle) * r);
-        else         ctx.lineTo(Math.cos(angle) * r, Math.sin(angle) * r);
+        const ang = (i * Math.PI) / 4 - Math.PI / 2;
+        const rad = i % 2 === 0 ? R : r;
+        i === 0
+          ? ctx.moveTo(Math.cos(ang) * rad, Math.sin(ang) * rad)
+          : ctx.lineTo(Math.cos(ang) * rad, Math.sin(ang) * rad);
       }
       ctx.closePath();
-      ctx.fillStyle = `rgba(244,180,26,${alpha.toFixed(3)})`;
+      ctx.fillStyle = `rgba(244,180,26,${a.toFixed(3)})`;
       ctx.fill();
       ctx.restore();
     }
 
-    const onResize = () => {
-      const W = canvas.clientWidth, H = canvas.clientHeight;
-      if (!W || !H) return;
-      if (S.phase === 'launch') { S.star = mkStar(W, H); S.timer = 0; }
-      S.restPos = { x: W * 0.74, y: H * 0.20 };
+    /* ── seed the particle cloud ─────────────────────────────────────── */
+    function seed() {
+      S.pts = [];
+      for (let i = 0; i < N; i++) {
+        S.pts.push({
+          bx:  (Math.random() - 0.5) * SX,
+          by:  (Math.random() - 0.5) * SY,
+          bz:  SZ_NEAR + Math.random() * (SZ_FAR - SZ_NEAR),
+          vx:  (Math.random() - 0.5) * 0.22,
+          vy:  (Math.random() - 0.5) * 0.22,
+          vz:  (Math.random() - 0.5) * 0.14,
+          sz:  0.55 + Math.random() * 1.90,
+          al:  0.10 + Math.random() * 0.48,
+          gold: Math.random() < 0.09,
+        });
+      }
+    }
+    seed();
+
+    /* ── spawn shooting stars from canvas centre ─────────────────────── */
+    function spawnShooters() {
+      for (let i = 0; i < 6; i++) {
+        const ang = Math.random() * Math.PI * 2;
+        const spd = 5 + Math.random() * 9;
+        const life = 55 + Math.floor(Math.random() * 45);
+        S.shooters.push({
+          x: 0, y: 0,
+          vx: Math.cos(ang) * spd,
+          vy: Math.sin(ang) * spd,
+          trail: [],
+          life,
+          maxLife: life,
+        });
+      }
+    }
+
+    /* ── mouse parallax ──────────────────────────────────────────────── */
+    const onMouse = (e) => {
+      const W = canvas.clientWidth  || 1;
+      const H = canvas.clientHeight || 1;
+      S.tgtY = ((e.clientX - W * 0.5) / W) *  0.30;
+      S.tgtX = ((e.clientY - H * 0.5) / H) *  0.18;
     };
-    window.addEventListener('resize', onResize, { passive: true });
 
-    const W0 = canvas.clientWidth || 960;
-    const H0 = canvas.clientHeight || 540;
-    S.star    = mkStar(W0, H0);
-    S.restPos = { x: W0 * 0.74, y: H0 * 0.20 };
+    /* ── scroll launch ───────────────────────────────────────────────── */
+    const onScroll = () => {
+      if (S.cooldown > 0) return;
+      if (window.scrollY > 0) {
+        S.launching = true;
+        S.launchT   = 0;
+        S.cooldown  = LAUNCH_F + 80;
+        spawnShooters();
+      }
+    };
 
-    function loop() {
+    window.addEventListener('mousemove', onMouse,   { passive: true });
+    window.addEventListener('scroll',    onScroll,  { passive: true });
+
+    /* ── main render loop ────────────────────────────────────────────── */
+    function frame() {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const W   = canvas.clientWidth;
       const H   = canvas.clientHeight;
-      if (!W || !H) { rafRef.current = requestAnimationFrame(loop); return; }
+      if (!W || !H) { rafRef.current = requestAnimationFrame(frame); return; }
 
-      const cW = Math.round(W * dpr), cH = Math.round(H * dpr);
+      const cW = Math.round(W * dpr);
+      const cH = Math.round(H * dpr);
       if (canvas.width !== cW || canvas.height !== cH) {
         canvas.width  = cW;
         canvas.height = cH;
       }
-      if (!S.star)    S.star    = mkStar(W, H);
-      if (!S.restPos) S.restPos = { x: W * 0.74, y: H * 0.20 };
 
       const ctx = canvas.getContext('2d');
       ctx.save();
@@ -176,158 +232,155 @@ function HeroCanvas3D() {
       ctx.clearRect(0, 0, W, H);
       ctx.lineCap = 'round';
 
-      S.timer++;
-      const st = S.star;
-      const rp = S.restPos;
+      S.tick++;
+      if (S.cooldown > 0) S.cooldown--;
 
-      /* ══════════════════════════════════════ LAUNCH PHASE ══════ */
-      if (S.phase === 'launch') {
+      /* smooth rotation easing */
+      S.rotX += (S.tgtX - S.rotX) * 0.038;
+      S.rotY += (S.tgtY - S.rotY) * 0.038;
 
-        st.trail.push({ x: st.x, y: st.y, z: st.z });
-        if (st.trail.length > 40) st.trail.shift();
+      /* launch envelope: ramps up 0→1 over first 40% of LAUNCH_F,
+         then eases back to 0 over remaining 60% */
+      let launchPct = 0;
+      if (S.launching) {
+        S.launchT++;
+        const lt = S.launchT / LAUNCH_F;
+        launchPct = lt < 0.4 ? lt / 0.4 : Math.max(0, 1 - (lt - 0.4) / 0.6);
+        if (S.launchT >= LAUNCH_F) S.launching = false;
+      }
+      const zBoost = launchPct * LAUNCH_Z;
 
-        st.x += st.vx;
-        st.y += st.vy;
-        st.z += st.vz;
+      /* ── particle pass ─────────────────────────────────────────────── */
+      const spts = [];          // screen-space positions for constellation pass
 
-        const cur = project(st.x, st.y, st.z, W, H);
+      for (const p of S.pts) {
+        /* ambient drift */
+        p.bx += p.vx;
+        p.by += p.vy;
+        p.bz += p.vz;
+        if (p.bz > SZ_FAR)  p.bz = SZ_NEAR;
+        if (p.bz < SZ_NEAR) p.bz = SZ_FAR;
 
-        if (cur) {
-          /* ─── 40-point tapered trail ───────────────────────── */
-          const tLen = st.trail.length;
-          for (let i = 1; i < tLen; i++) {
-            const pa = project(st.trail[i-1].x, st.trail[i-1].y, st.trail[i-1].z, W, H);
-            const pb = project(st.trail[i].x,   st.trail[i].y,   st.trail[i].z,   W, H);
-            if (!pa || !pb) continue;
-            const prog = i / tLen;
-            ctx.beginPath();
-            ctx.moveTo(pa.x, pa.y);
-            ctx.lineTo(pb.x, pb.y);
-            ctx.strokeStyle = `rgba(244,180,26,${(prog * 0.85).toFixed(3)})`;
-            ctx.lineWidth   = Math.max(0.5, 5 * pb.sc * prog);
-            ctx.stroke();
-          }
+        /* apply mouse-parallax rotation */
+        const [wx, wy, wz] = rotXY(p.bx, p.by, p.bz, S.rotX, S.rotY);
 
-          /* ─── Proximity bloom ──────────────────────────────── */
-          const prox  = Math.pow(Math.max(0, 1 - Math.abs(st.z) / 700), 2.0);
-          const haloR = Math.max(20, 7 * cur.sc + prox * 310);
-          const halo  = ctx.createRadialGradient(cur.x, cur.y, 0, cur.x, cur.y, haloR);
-          halo.addColorStop(0,    `rgba(255,252,200,${(0.22 + prox * 0.78).toFixed(3)})`);
-          halo.addColorStop(0.14, `rgba(255,215,65,${(0.18  + prox * 0.62).toFixed(3)})`);
-          halo.addColorStop(0.42, `rgba(244,180,26,${(prox  * 0.52).toFixed(3)})`);
-          halo.addColorStop(0.78, `rgba(244,180,26,${(prox  * 0.16).toFixed(3)})`);
-          halo.addColorStop(1,    'rgba(244,180,26,0)');
-          ctx.fillStyle = halo;
+        /* apply launch Z-boost (rush toward viewer) */
+        const effZ = Math.max(2, wz - zBoost);
+
+        const hit = prj(wx, wy, effZ, W, H);
+        if (!hit) { spts.push(null); continue; }
+        const [sx, sy, sc] = hit;
+
+        /* bokeh expands as particles rush close */
+        const bokeh  = launchPct * Math.max(0, 1 - effZ / 350);
+        const radius = Math.max(0.4, p.sz * sc + bokeh * 16);
+        const alpha  = Math.max(0, p.al - bokeh * 0.28);
+
+        if (p.gold) {
+          const gr = radius * 3.2;
+          const g  = ctx.createRadialGradient(sx, sy, 0, sx, sy, gr);
+          g.addColorStop(0,   `rgba(244,180,26,${Math.min(1, alpha * 1.5).toFixed(3)})`);
+          g.addColorStop(0.4, `rgba(244,180,26,${(alpha * 0.45).toFixed(3)})`);
+          g.addColorStop(1,   'rgba(244,180,26,0)');
+          ctx.fillStyle = g;
           ctx.beginPath();
-          ctx.arc(cur.x, cur.y, haloR, 0, Math.PI * 2);
+          ctx.arc(sx, sy, gr, 0, Math.PI * 2);
           ctx.fill();
-
-          if (prox > 0.45) {
-            const coreR = 5 + prox * 48;
-            const core  = ctx.createRadialGradient(cur.x, cur.y, 0, cur.x, cur.y, coreR);
-            core.addColorStop(0,    `rgba(255,255,255,${(prox * 0.96).toFixed(3)})`);
-            core.addColorStop(0.28, `rgba(255,244,160,${(prox * 0.88).toFixed(3)})`);
-            core.addColorStop(0.7,  `rgba(244,180,26,${(prox * 0.40).toFixed(3)})`);
-            core.addColorStop(1,    'rgba(244,180,26,0)');
-            ctx.fillStyle = core;
-            ctx.beginPath();
-            ctx.arc(cur.x, cur.y, coreR, 0, Math.PI * 2);
-            ctx.fill();
-          }
-
-          if (prox > 0.28) {
-            const spkLen = prox * 115;
-            const spkAlp = prox * 0.56;
-            const spkW   = 0.7 + prox * 2.4;
-            const dirs   = [
-              [1,0],[-1,0],[0,1],[0,-1],
-              [ 0.7071, 0.7071],[-0.7071,-0.7071],
-              [ 0.7071,-0.7071],[-0.7071, 0.7071],
-            ];
-            for (const [dx, dy] of dirs) {
-              const g = ctx.createLinearGradient(
-                cur.x, cur.y,
-                cur.x + dx * spkLen, cur.y + dy * spkLen
-              );
-              g.addColorStop(0,    `rgba(255,255,200,${spkAlp.toFixed(3)})`);
-              g.addColorStop(0.38, `rgba(244,180,26,${(spkAlp * 0.5).toFixed(3)})`);
-              g.addColorStop(1,    'rgba(244,180,26,0)');
-              ctx.strokeStyle = g;
-              ctx.lineWidth   = spkW;
-              ctx.beginPath();
-              ctx.moveTo(cur.x, cur.y);
-              ctx.lineTo(cur.x + dx * spkLen, cur.y + dy * spkLen);
-              ctx.stroke();
-            }
-          }
-        }
-
-        /* Transition to arrive once star nears the camera plane */
-        if (st.z < -80) {
-          const last = project(st.x, st.y, st.z, W, H);
-          S.arriveFrom = last ? { x: last.x, y: last.y } : { x: rp.x, y: rp.y };
-          S.phase = 'arrive';
-          S.timer = 0;
-        }
-
-      /* ══════════════════════════════════════ ARRIVE PHASE ═══════ */
-      } else if (S.phase === 'arrive') {
-        const FRAMES = 30;
-        const t    = Math.min(S.timer / FRAMES, 1);
-        const ease = t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3) / 2;
-
-        const af = S.arriveFrom;
-        const cx = af.x + (rp.x - af.x) * ease;
-        const cy = af.y + (rp.y - af.y) * ease;
-
-        /* Flash bloom dissolves as we settle */
-        const flashA = 1 - ease;
-        if (flashA > 0.02) {
-          const flashR = 60 + flashA * 200;
-          const flash  = ctx.createRadialGradient(cx, cy, 0, cx, cy, flashR);
-          flash.addColorStop(0,   `rgba(255,252,200,${(flashA * 0.85).toFixed(3)})`);
-          flash.addColorStop(0.3, `rgba(244,180,26,${(flashA * 0.45).toFixed(3)})`);
-          flash.addColorStop(1,   'rgba(244,180,26,0)');
-          ctx.fillStyle = flash;
+        } else {
+          ctx.fillStyle = `rgba(26,37,64,${alpha.toFixed(3)})`;
           ctx.beginPath();
-          ctx.arc(cx, cy, flashR, 0, Math.PI * 2);
+          ctx.arc(sx, sy, radius, 0, Math.PI * 2);
           ctx.fill();
         }
 
-        /* 4-point star fades in as we arrive */
-        draw4Star(ctx, cx, cy, 10 + ease * 4, 4 + ease * 2, ease * 0.9);
-
-        if (t >= 1) { S.phase = 'rest'; S.timer = 0; }
-
-      /* ══════════════════════════════════════ REST PHASE ═════════ */
-      } else if (S.phase === 'rest') {
-        const pulse  = 0.5 + 0.5 * Math.sin(S.timer * 0.04);
-        const outerR = 12 + pulse * 4;
-        const innerR = 5  + pulse * 1;
-        const alpha  = 0.65 + pulse * 0.25;
-
-        const glowR = 40 + pulse * 20;
-        const glow  = ctx.createRadialGradient(rp.x, rp.y, 0, rp.x, rp.y, glowR);
-        glow.addColorStop(0,   `rgba(244,180,26,${(0.18 + pulse * 0.12).toFixed(3)})`);
-        glow.addColorStop(0.5, `rgba(244,180,26,${(0.06 + pulse * 0.06).toFixed(3)})`);
-        glow.addColorStop(1,   'rgba(244,180,26,0)');
-        ctx.fillStyle = glow;
-        ctx.beginPath();
-        ctx.arc(rp.x, rp.y, glowR, 0, Math.PI * 2);
-        ctx.fill();
-
-        draw4Star(ctx, rp.x, rp.y, outerR, innerR, alpha);
+        spts.push([sx, sy]);
       }
 
+      /* ── constellation mesh ────────────────────────────────────────── */
+      const LD2 = LINE_PX * LINE_PX;
+      let lc = 0;
+      ctx.lineWidth = 0.8;
+      for (let i = 0; i < spts.length && lc < LINE_CAP; i++) {
+        const a = spts[i];
+        if (!a) continue;
+        for (let j = i + 1; j < spts.length && lc < LINE_CAP; j++) {
+          const b = spts[j];
+          if (!b) continue;
+          const dx = a[0] - b[0], dy = a[1] - b[1];
+          if (dx * dx + dy * dy < LD2) {
+            ctx.strokeStyle = 'rgba(26,37,64,0.032)';
+            ctx.beginPath();
+            ctx.moveTo(a[0], a[1]);
+            ctx.lineTo(b[0], b[1]);
+            ctx.stroke();
+            lc++;
+          }
+        }
+      }
+
+      /* ── shooting stars (scroll launch) ────────────────────────────── */
+      const cx = W * 0.5, cy = H * 0.5;
+      for (let i = S.shooters.length - 1; i >= 0; i--) {
+        const sh = S.shooters[i];
+        sh.trail.push([sh.x, sh.y]);
+        if (sh.trail.length > 26) sh.trail.shift();
+        sh.x += sh.vx;
+        sh.y += sh.vy;
+        sh.life--;
+        if (sh.life <= 0) { S.shooters.splice(i, 1); continue; }
+
+        const lr   = sh.life / sh.maxLife;
+        const tLen = sh.trail.length;
+        for (let t = 1; t < tLen; t++) {
+          const [ax, ay] = sh.trail[t - 1];
+          const [bx, by] = sh.trail[t];
+          const prog = t / tLen;
+          const g = ctx.createLinearGradient(cx + ax, cy + ay, cx + bx, cy + by);
+          g.addColorStop(0, 'rgba(234,179,8,0)');
+          g.addColorStop(1, `rgba(234,179,8,${(prog * lr * 0.58).toFixed(3)})`);
+          ctx.strokeStyle = g;
+          ctx.lineWidth   = 0.7 + prog * 1.6;
+          ctx.beginPath();
+          ctx.moveTo(cx + ax, cy + ay);
+          ctx.lineTo(cx + bx, cy + by);
+          ctx.stroke();
+        }
+        /* head glow */
+        const hx = cx + sh.x, hy = cy + sh.y;
+        const gr = 3 + lr * 8;
+        const hg = ctx.createRadialGradient(hx, hy, 0, hx, hy, gr);
+        hg.addColorStop(0, `rgba(255,252,200,${(lr * 0.88).toFixed(3)})`);
+        hg.addColorStop(1, 'rgba(234,179,8,0)');
+        ctx.fillStyle = hg;
+        ctx.beginPath();
+        ctx.arc(hx, hy, gr, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      /* ── North Star — pulsing at canvas centre ───────────────────── */
+      const pulse  = 0.5 + 0.5 * Math.sin(S.tick * 0.046);
+      const glowR  = 36 + pulse * 20;
+      const nsGlow = ctx.createRadialGradient(cx, cy, 0, cx, cy, glowR);
+      nsGlow.addColorStop(0,   `rgba(244,180,26,${(0.13 + pulse * 0.11).toFixed(3)})`);
+      nsGlow.addColorStop(0.5, `rgba(244,180,26,${(0.04 + pulse * 0.04).toFixed(3)})`);
+      nsGlow.addColorStop(1,   'rgba(244,180,26,0)');
+      ctx.fillStyle = nsGlow;
+      ctx.beginPath();
+      ctx.arc(cx, cy, glowR, 0, Math.PI * 2);
+      ctx.fill();
+
+      drawStar(ctx, cx, cy, 11 + pulse * 4, 4.5 + pulse * 1.5, 0.70 + pulse * 0.22);
+
       ctx.restore();
-      rafRef.current = requestAnimationFrame(loop);
+      rafRef.current = requestAnimationFrame(frame);
     }
 
-    rafRef.current = requestAnimationFrame(loop);
+    rafRef.current = requestAnimationFrame(frame);
 
     return () => {
       cancelAnimationFrame(rafRef.current);
-      window.removeEventListener('resize', onResize);
+      window.removeEventListener('mousemove', onMouse);
+      window.removeEventListener('scroll',    onScroll);
     };
   }, []);
 
