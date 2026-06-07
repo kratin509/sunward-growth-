@@ -557,7 +557,7 @@ export default function Home() {
 
       {/* ══ §1  HEADER ══════════════════════════════════════════════ */}
       <header
-        className={`fixed inset-x-0 top-0 z-40 bg-[#07080A] transition-all duration-300 ${
+        className={`fixed inset-x-0 top-0 z-40 bg-[#1A2540] transition-all duration-300 ${
           navScrolled ? 'shadow-[0_1px_0_rgba(255,255,255,0.07)]' : ''
         }`}
       >
@@ -609,7 +609,7 @@ export default function Home() {
 
         {/* Mobile drawer */}
         <div
-          className={`md:hidden overflow-hidden transition-all duration-300 bg-[#07080A] border-t border-white/[0.08] ${
+          className={`md:hidden overflow-hidden transition-all duration-300 bg-[#1A2540] border-t border-white/[0.08] ${
             menuOpen ? 'max-h-80' : 'max-h-0'
           }`}
         >
@@ -1110,7 +1110,7 @@ export default function Home() {
         {/* ══ FOOTER ═════════════════════════════════════════════════ */}
         <footer
           id="footer"
-          className="bg-[#0B0D10] border-t border-white/[0.06] px-6 md:px-14 xl:px-20 pt-14 pb-8"
+          className="bg-[#1A2540] border-t border-white/[0.06] px-6 md:px-14 xl:px-20 pt-14 pb-8"
         >
           <div className="max-w-[1440px] mx-auto">
 
