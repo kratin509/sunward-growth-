@@ -343,59 +343,76 @@ function HeroCanvas3D() {
 
 /* ─────────────────────────────────────────────── TEAM SECTION */
 function TeamSection() {
-  const [scrollOffset, setScrollOffset] = useState(0);
+  const sectionRef = useRef(null);
+  // progress: 0 = section entering from bottom, 0.5 = section centred, 1 = section exiting top
+  const [progress, setProgress] = useState(0.5);
 
   useEffect(() => {
-    const onScroll = () => setScrollOffset(window.scrollY);
+    const section = sectionRef.current;
+    if (!section) return;
+
+    const onScroll = () => {
+      const rect = section.getBoundingClientRect();
+      const raw  = (window.innerHeight - rect.top) / (window.innerHeight + rect.height);
+      setProgress(Math.max(0, Math.min(1, raw)));
+    };
+
+    onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  // offset: -0.5 when entering → 0 when centred → +0.5 when exiting
+  const offset = progress - 0.5;
+
   const trackBase = {
     fontFamily: "'Plus Jakarta Sans', sans-serif",
-    fontSize: '16vw',
+    fontSize: '18vw',
     fontWeight: 900,
-    letterSpacing: '-0.01em',
+    letterSpacing: '-0.02em',
     lineHeight: 1,
-    color: 'rgba(26,37,64,0.13)',
+    color: 'rgba(26,37,64,0.12)',
     WebkitTextStroke: 'none',
     whiteSpace: 'nowrap',
     userSelect: 'none',
     display: 'block',
+    width: '100%',
+    textAlign: 'center',
     willChange: 'transform',
   };
 
   return (
     <section
       id="team-band"
+      ref={sectionRef}
       className="scroll-mt-[64px] relative overflow-hidden"
       style={{
         background: 'linear-gradient(180deg, #FDFBF7 0%, #EFECE6 45%, #EAE5D8 55%, #FDFBF7 100%)',
       }}
     >
-      {/* ── Opposing kinetic text tracks ── */}
+      {/* ── Single "OUR" enters from left, single "TEAM" enters from right ── */}
       <div
         aria-hidden="true"
         className="absolute inset-0 overflow-hidden pointer-events-none select-none"
         style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '0.5rem' }}
       >
-        {/* Track 1 — OUR — drifts RIGHT as scrollOffset increases */}
+        {/* OUR — slides RIGHT as section enters, LEFT as it exits */}
         <span
           style={{
             ...trackBase,
-            transform: `translateX(${scrollOffset * 0.4}px)`,
+            transform: `translateX(calc(${offset * 90}vw))`,
           }}
         >
-          OUR&nbsp;&nbsp;&nbsp;OUR&nbsp;&nbsp;&nbsp;OUR&nbsp;&nbsp;&nbsp;OUR&nbsp;&nbsp;&nbsp;OUR&nbsp;&nbsp;&nbsp;OUR&nbsp;&nbsp;&nbsp;OUR&nbsp;&nbsp;&nbsp;OUR
+          OUR
         </span>
-        {/* Track 2 — TEAM — drifts LEFT as scrollOffset increases */}
+        {/* TEAM — slides LEFT as section enters, RIGHT as it exits */}
         <span
           style={{
             ...trackBase,
-            transform: `translateX(${-scrollOffset * 0.4}px)`,
+            transform: `translateX(calc(${-offset * 90}vw))`,
           }}
         >
-          TEAM&nbsp;&nbsp;&nbsp;TEAM&nbsp;&nbsp;&nbsp;TEAM&nbsp;&nbsp;&nbsp;TEAM&nbsp;&nbsp;&nbsp;TEAM&nbsp;&nbsp;&nbsp;TEAM&nbsp;&nbsp;&nbsp;TEAM
+          TEAM
         </span>
       </div>
 
