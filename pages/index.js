@@ -598,6 +598,136 @@ function TeamSection() {
   );
 }
 
+/* ─────────────────────────────────────────────── FOUNDER CARD */
+function FounderCard({ card }) {
+  return (
+    <div
+      className="group relative flex-shrink-0 cursor-default transition-transform duration-300 ease-out hover:-translate-y-1"
+      style={{ width: '272px', marginRight: '28px' }}
+    >
+      {/* Portrait — grayscale at rest, full colour + scale on hover */}
+      <div
+        className="relative overflow-hidden mb-4"
+        style={{ height: '352px', borderRadius: '2px' }}
+      >
+        <img
+          src={card.photo}
+          alt={card.founder}
+          className="founder-card-photo w-full h-full object-cover"
+          style={{ objectPosition: 'center top' }}
+        />
+
+        {/* Gold inset border appears on hover */}
+        <div
+          className="absolute inset-0 pointer-events-none border-[2px] border-transparent group-hover:border-[#F4B41A] transition-colors duration-400"
+        />
+
+        {/* Bottom vignette */}
+        <div
+          className="absolute bottom-0 left-0 right-0 h-20 pointer-events-none"
+          style={{ background: 'linear-gradient(to top, rgba(11,13,16,0.42) 0%, transparent 100%)' }}
+        />
+
+        {/* Sector pill */}
+        <div className="absolute bottom-3 left-3">
+          <span
+            className="font-sans text-[8px] uppercase tracking-[0.26em] font-medium"
+            style={{ color: 'rgba(255,255,255,0.68)' }}
+          >
+            {card.sector}
+          </span>
+        </div>
+      </div>
+
+      {/* Info row — name + company on left, logo on right */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p
+            className="font-serif font-semibold leading-tight mb-1"
+            style={{ fontSize: '1.05rem', color: '#1A2540' }}
+          >
+            {card.founder}
+          </p>
+          <p
+            className="font-sans text-[10px] uppercase tracking-[0.20em] font-medium truncate"
+            style={{ color: 'rgba(11,13,16,0.40)' }}
+          >
+            {card.company}
+          </p>
+        </div>
+        <img
+          src={card.logo}
+          alt={card.company + ' logo'}
+          className="flex-shrink-0 object-contain"
+          style={{
+            height: '28px',
+            width: 'auto',
+            maxWidth: '68px',
+            marginTop: '2px',
+            mixBlendMode: 'multiply',
+            opacity: 0.80,
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────── FOUNDER TICKER */
+const TICKER_CARDS = [
+  {
+    company: 'Kolkata Chai Company',
+    founder:  'Ayan Sanyal',
+    photo:    '/Kolkata chai company founder.jpg',
+    logo:     '/Kolkata chai company.png',
+    sector:   'Premium F&B',
+  },
+  {
+    company: 'Mahati Wellness',
+    founder:  'Aaditya Bhardwaj',
+    photo:    '/Mahati wellness founder.jpg',
+    logo:     '/mahati_wellness-removebg-preview.png',
+    sector:   'Wellness',
+  },
+  {
+    company: 'Manam Chocolates',
+    founder:  'Chaitanya Muppala',
+    photo:    '/Manham chocolates founder.jpg',
+    logo:     '/manam_chocolates-removebg-preview.png',
+    sector:   'Premium F&B',
+  },
+];
+
+function FounderTicker() {
+  // 4× repetition: marquee animates translateX(-50%) = 2 full sets → seamless loop
+  const track = [...TICKER_CARDS, ...TICKER_CARDS, ...TICKER_CARDS, ...TICKER_CARDS];
+
+  return (
+    <div
+      className="bg-[#F9F8F5] overflow-hidden border-t border-b border-[rgba(11,13,16,0.07)]"
+      style={{ paddingTop: '52px', paddingBottom: '52px' }}
+    >
+      {/* Eyebrow */}
+      <div className="flex items-center gap-4 px-6 md:px-14 xl:px-20 mb-10">
+        <span className="w-8 h-px bg-[#F4B41A]" />
+        <span
+          className="font-sans text-[10px] uppercase tracking-[0.32em]"
+          style={{ color: 'rgba(11,13,16,0.38)' }}
+        >
+          Founders We've Worked With
+        </span>
+      </div>
+
+      {/* Ticker — marquee-track drives the animation, hover pauses it */}
+      <div className="marquee-track flex">
+        {track.map((card, i) => (
+          <FounderCard key={i} card={card} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /* ─────────────────────────────────────────────── DATA */
 const NAV_LINKS = [
   { label: 'About',    href: '#manifesto'    },
@@ -959,6 +1089,8 @@ export default function Home() {
           </div>
 
         </section>
+
+        <FounderTicker />
 
         <TeamSection />
 

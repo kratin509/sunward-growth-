@@ -26,10 +26,21 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .marquee-track {
-  animation: marquee 34s linear infinite;
+  animation: marquee 32s linear infinite;
   will-change: transform;
 }
 
 .marquee-track:hover {
   animation-play-state: paused;
+}
+
+/* ── Founder card portrait — grayscale at rest, full-colour on hover ── */
+.founder-card-photo {
+  filter: grayscale(28%);
+  transition: filter 0.50s ease-out, transform 0.55s ease-out;
+}
+
+.group:hover .founder-card-photo {
+  filter: grayscale(0%);
+  transform: scale(1.04);
 }
