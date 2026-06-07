@@ -638,7 +638,7 @@ export default function Home() {
       <main>
 
         {/* ══ §2  HERO — strict 85 vh, 3D perspective canvas ══════════ */}
-        <section className="relative bg-[#F2F0EC] overflow-hidden">
+        <section className="relative bg-[#F9F8F5] overflow-hidden">
 
           {/* Hero body — strict 85 vh container */}
           <div className="relative h-[85vh] flex items-center overflow-hidden">
@@ -706,7 +706,7 @@ export default function Home() {
         {/* ══ §FOUNDERS — vertical img/text cards, 2-col grid ════════ */}
         <section
           id="team-band"
-          className="scroll-mt-[64px] bg-[#F2F0EC] py-14 px-6 md:px-14 border-t border-[rgba(11,13,16,0.07)]"
+          className="scroll-mt-[64px] bg-[#F9F8F5] py-14 px-6 md:px-14 border-t border-[rgba(11,13,16,0.07)]"
         >
           <div className="max-w-[700px] mx-auto grid grid-cols-1 sm:grid-cols-2 gap-5">
 
@@ -731,7 +731,7 @@ export default function Home() {
                 </div>
 
                 {/* Text — bottom, tight */}
-                <div className="bg-white border border-t-0 border-[rgba(180,130,20,0.14)] px-5 py-4 flex flex-col gap-1.5 relative overflow-hidden">
+                <div className="bg-[#F9F8F5] border border-t-0 border-[rgba(180,130,20,0.14)] px-5 py-4 flex flex-col gap-1.5 relative overflow-hidden">
                   {/* Gold left bar on hover */}
                   <span className="absolute left-0 top-0 bottom-0 w-[3px] bg-[#F4B41A] origin-top scale-y-0 group-hover:scale-y-100 transition-transform duration-400 ease-out" />
 
@@ -766,7 +766,7 @@ export default function Home() {
         {/* ══ §3  PORTFOLIO MATRIX GRID ════════════════════════════════ */}
         <section
           id="portfolio"
-          className="scroll-mt-[64px] bg-[#F2F0EC] px-6 md:px-14 xl:px-20 py-24 border-t border-[rgba(11,13,16,0.08)]"
+          className="scroll-mt-[64px] bg-[#F9F8F5] px-6 md:px-14 xl:px-20 py-24 border-t border-[rgba(11,13,16,0.08)]"
         >
           <div className="max-w-[1440px] mx-auto">
 
@@ -792,10 +792,10 @@ export default function Home() {
                   key={i}
                   className={`group relative min-h-[240px] md:min-h-[256px] overflow-hidden cursor-pointer transition-all duration-300 hover:z-10 ${
                     item.logo
-                      ? 'bg-[#F2F0EC] hover:scale-[1.02] hover:shadow-[0_20px_52px_rgba(11,13,16,0.13)]'
+                      ? 'bg-[#F9F8F5] hover:scale-[1.02] hover:shadow-[0_20px_52px_rgba(11,13,16,0.13)]'
                       : item.segment
                         ? 'bg-[#0B0D10]'
-                        : 'bg-[#F2F0EC] hover:scale-[1.02] hover:shadow-[0_20px_52px_rgba(11,13,16,0.13)]'
+                        : 'bg-[#F9F8F5] hover:scale-[1.02] hover:shadow-[0_20px_52px_rgba(11,13,16,0.13)]'
                   }`}
                 >
                   {/* Gold bottom sweep — on all cards */}
@@ -927,7 +927,7 @@ export default function Home() {
         {/* ══ §4  MANIFESTO ════════════════════════════════════════════ */}
         <section
           id="manifesto"
-          className="scroll-mt-[64px] bg-[#F2F0EC] px-6 md:px-14 xl:px-20 py-28 border-t border-[rgba(11,13,16,0.08)]"
+          className="scroll-mt-[64px] bg-[#F9F8F5] px-6 md:px-14 xl:px-20 py-28 border-t border-[rgba(11,13,16,0.08)]"
         >
           <div className="max-w-[1440px] mx-auto grid md:grid-cols-[2fr_3fr] gap-20 md:gap-36 items-center">
 
@@ -959,7 +959,7 @@ export default function Home() {
         <section
           id="case-studies"
           ref={csRef}
-          className="scroll-mt-[64px] px-6 md:px-14 xl:px-20 py-28 border-t border-[rgba(11,13,16,0.08)] bg-[#E8F0FA]"
+          className="scroll-mt-[64px] px-6 md:px-14 xl:px-20 py-28 border-t border-[rgba(11,13,16,0.08)] bg-[#F9F8F5]"
         >
           <div className="max-w-[1440px] mx-auto">
 
