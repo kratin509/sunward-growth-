@@ -69,10 +69,9 @@ function SunwardMark({ size = 36 }) {
 }
 
 /* ─────────────────────────────────────────────── HERO CANVAS
-   NorthStar Warp Engine v3 — pool of 18 gold 4-point stars
-   continuously launching bottom-right → upper-left through
-   true 3D perspective (scale = FL/(FL+Z)).
-   Pre-seeded at load, zero scroll dependency.                      */
+   NorthStar Warp Engine v4 — 10 thin gold stars, multi-directional,
+   minimal-aesthetic. Each star picks one of four lane types so
+   trails cross the canvas from different angles.                    */
 function HeroCanvas3D() {
   const canvasRef = useRef(null);
   const rafRef    = useRef(null);
@@ -82,32 +81,53 @@ function HeroCanvas3D() {
     if (!canvas) return;
 
     const FL     = 480;
-    const POOL   = 18;
-    const TRAIL  = 25;
-    const Z_FAR  = 820;
-    const Z_KILL = -100;
-
-    const LX0 = 0.46, LX1 = 0.96;
-    const LY0 = 0.74, LY1 = 1.00;
-    const EX0 = 0.00, EX1 = 0.40;
-    const EY0 = -0.12, EY1 = 0.03;
+    const POOL   = 10;
+    const TRAIL  = 20;
+    const Z_FAR  = 800;
+    const Z_KILL = -80;
 
     const pool = [];
     let W0 = 0, H0 = 0;
 
     function makeStar(W, H, ageOffset) {
-      const z   = Z_FAR * (0.30 + Math.random() * 0.70);
-      const s0  = FL / (FL + z);
-      const spx = W * (LX0 + Math.random() * (LX1 - LX0));
-      const spy = H * (LY0 + Math.random() * (LY1 - LY0));
+      const z  = Z_FAR * (0.35 + Math.random() * 0.65);
+      const s0 = FL / (FL + z);
+      const sF = FL / (FL + Z_KILL);
+
+      // Four directional lanes
+      const lane = Math.floor(Math.random() * 4);
+      let spx, spy, epx, epy;
+      if (lane === 0) {
+        // bottom-right → upper-left
+        spx = W * (0.55 + Math.random() * 0.42);
+        spy = H * (0.72 + Math.random() * 0.28);
+        epx = W * (0.02 + Math.random() * 0.30);
+        epy = H * (-0.08 + Math.random() * 0.14);
+      } else if (lane === 1) {
+        // right edge → upper-left diagonal
+        spx = W * (0.82 + Math.random() * 0.18);
+        spy = H * (0.40 + Math.random() * 0.45);
+        epx = W * (0.04 + Math.random() * 0.28);
+        epy = H * (0.02 + Math.random() * 0.22);
+      } else if (lane === 2) {
+        // bottom-center → upper-right
+        spx = W * (0.28 + Math.random() * 0.36);
+        spy = H * (0.78 + Math.random() * 0.22);
+        epx = W * (0.58 + Math.random() * 0.32);
+        epy = H * (-0.06 + Math.random() * 0.12);
+      } else {
+        // bottom → upper-center (nearly vertical with slight drift)
+        spx = W * (0.38 + Math.random() * 0.50);
+        spy = H * (0.82 + Math.random() * 0.18);
+        epx = W * (0.30 + Math.random() * 0.40);
+        epy = H * (-0.06 + Math.random() * 0.10);
+      }
+
       const wx0 = (spx - W * 0.5) / s0;
       const wy0 = (spy - H * 0.5) / s0;
-      const sF  = FL / (FL + Z_KILL);
-      const epx = W * (EX0 + Math.random() * (EX1 - EX0));
-      const epy = H * (EY0 + Math.random() * (EY1 - EY0));
       const wxF = (epx - W * 0.5) / sF;
       const wyF = (epy - H * 0.5) / sF;
-      const maxLife = 68 + Math.floor(Math.random() * 38);
+      const maxLife = 72 + Math.floor(Math.random() * 40);
       const aged    = Math.floor((ageOffset || 0) * maxLife);
       return {
         wx: wx0 + (wxF - wx0) * aged / maxLife,
@@ -117,22 +137,22 @@ function HeroCanvas3D() {
         vy: (wyF - wy0)  / maxLife,
         vz: (Z_KILL - z) / maxLife,
         trail: [], life: maxLife - aged, maxLife,
-        sz:  9 + Math.random() * 13,
+        sz:  3.5 + Math.random() * 5,
         hue: Math.random() < 0.55,
       };
     }
 
     function draw4pt(ctx, cx, cy, R, alpha, hue) {
-      if (R < 0.5) return;
-      const r   = R * 0.28;
+      if (R < 0.4) return;
+      const r   = R * 0.26;
       const col = hue ? '244,180,26' : '234,179,8';
-      const gr  = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * 3.8);
-      gr.addColorStop(0,    `rgba(${col},${(alpha * 0.32).toFixed(3)})`);
-      gr.addColorStop(0.45, `rgba(${col},${(alpha * 0.11).toFixed(3)})`);
+      const gr  = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * 2.4);
+      gr.addColorStop(0,    `rgba(${col},${(alpha * 0.22).toFixed(3)})`);
+      gr.addColorStop(0.5,  `rgba(${col},${(alpha * 0.07).toFixed(3)})`);
       gr.addColorStop(1,    `rgba(${col},0)`);
       ctx.fillStyle = gr;
       ctx.beginPath();
-      ctx.arc(cx, cy, R * 3.8, 0, Math.PI * 2);
+      ctx.arc(cx, cy, R * 2.4, 0, Math.PI * 2);
       ctx.fill();
       ctx.beginPath();
       for (let i = 0; i < 8; i++) {
@@ -143,7 +163,7 @@ function HeroCanvas3D() {
         if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
       }
       ctx.closePath();
-      ctx.fillStyle = `rgba(${col},${alpha.toFixed(3)})`;
+      ctx.fillStyle = `rgba(${col},${(alpha * 0.90).toFixed(3)})`;
       ctx.fill();
     }
 
@@ -181,25 +201,25 @@ function HeroCanvas3D() {
         if (s.life <= 0 || s.wz < Z_KILL) { pool[i] = makeStar(W, H, 0); continue; }
         const pct = s.life / s.maxLife;
         const bri = pct > 0.92 ? (1 - pct) / 0.08
-                  : pct > 0.14 ? 1.0
-                  : pct / 0.14;
+                  : pct > 0.12 ? 1.0
+                  : pct / 0.12;
         const tLen = s.trail.length;
         if (tLen < 2) continue;
         for (let t = 1; t < tLen; t++) {
           const [ax, ay]      = s.trail[t - 1];
           const [bx, by, bsc] = s.trail[t];
           const p    = t / tLen;
-          const segA = Math.pow(p, 1.6) * bri * 0.88;
+          const segA = Math.pow(p, 2.2) * bri * 0.52;
           const col  = s.hue ? '244,180,26' : '234,179,8';
           const gl   = ctx.createLinearGradient(ax, ay, bx, by);
           gl.addColorStop(0, `rgba(${col},0)`);
           gl.addColorStop(1, `rgba(${col},${Math.min(1, segA).toFixed(3)})`);
           ctx.strokeStyle = gl;
-          ctx.lineWidth   = Math.max(0.3, Math.pow(p, 0.65) * s.sz * bsc * 1.75);
+          ctx.lineWidth   = Math.max(0.2, Math.pow(p, 0.8) * s.sz * bsc * 0.80);
           ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();
         }
         const [hx, hy, hsc] = s.trail[tLen - 1];
-        draw4pt(ctx, hx, hy, Math.max(0.8, s.sz * hsc), bri, s.hue);
+        draw4pt(ctx, hx, hy, Math.max(0.5, s.sz * hsc * 0.75), bri, s.hue);
       }
       ctx.restore();
       rafRef.current = requestAnimationFrame(frame);
@@ -872,16 +892,17 @@ export default function Home() {
             {/* Full-span 3D canvas — absolute, pointer-events:none */}
             <HeroCanvas3D />
 
-            {/* Editorial text — middle-left balanced, Peak XV scale */}
+            {/* Editorial text — center-aligned, Peak XV scale */}
             <div className="relative z-10 w-full max-w-[1440px] mx-auto px-8 md:px-14 xl:px-20 pt-[64px]">
-              <div className="flex flex-col items-start text-left max-w-[320px] md:max-w-[600px]">
+              <div className="flex flex-col items-center text-center mx-auto max-w-[320px] md:max-w-[700px]">
 
                 {/* Eyebrow */}
-                <div className="flex items-center gap-4 mb-9">
+                <div className="flex items-center justify-center gap-4 mb-9">
                   <span className="w-8 h-px bg-[#F4B41A]" />
                   <span className="font-sans text-[10px] uppercase tracking-[0.32em] text-[#0B0D10]/40">
                     Growth Advisory · Est. 2009
                   </span>
+                  <span className="w-8 h-px bg-[#F4B41A]" />
                 </div>
 
                 {/* Headline — large editorial scale */}
@@ -907,7 +928,7 @@ export default function Home() {
                 </p>
 
                 {/* CTA pair */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <div className="flex flex-col sm:flex-row items-center gap-4">
                   <a
                     href="mailto:info@sunwardgrowth.com"
                     className="inline-flex items-center gap-2.5 bg-[#0B0D10] text-[#FAF9F6] font-sans text-[12px] font-medium tracking-[0.05em] px-7 py-[13px] rounded-sm hover:bg-[#F4B41A] hover:text-[#0B0D10] hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(244,180,26,0.30)] transition-all duration-300"
