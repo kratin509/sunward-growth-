@@ -87,7 +87,7 @@ function HeroCanvas3D() {
     const Z_KILL = -80;
     const TRAIL  = 30;
 
-    const BLOOM_DUR  = 90;   // frames for the North Star bloom (~1.5 s)
+    const BLOOM_DUR  = 52;   // frames for the North Star bloom (~0.85 s)
     const MAIN_POOL  = 4;    // continuous pool size
 
     let tick      = 0;
@@ -114,14 +114,14 @@ function HeroCanvas3D() {
       const wy0 = (spy - H * 0.5) / s0;
       const wxF = (epx - W * 0.5) / sF;
       const wyF = (epy - H * 0.5) / sF;
-      const maxLife = 148;
+      const maxLife = 68;
       return {
         wx: wx0, wy: wy0, wz: z,
         vx: (wxF - wx0) / maxLife,
         vy: (wyF - wy0) / maxLife,
         vz: (Z_KILL - z) / maxLife,
         trail: [], life: maxLife, maxLife,
-        sz: 22, hue: true,
+        sz: 26, hue: true,
       };
     }
 
