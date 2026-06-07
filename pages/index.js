@@ -601,73 +601,48 @@ function TeamSection() {
 /* ─────────────────────────────────────────────── FOUNDER CARD */
 function FounderCard({ card }) {
   return (
+    /* No card box — photo is the element, text floats below on the canvas */
     <div
-      className="group relative flex-shrink-0 cursor-default transition-transform duration-300 ease-out hover:-translate-y-1"
-      style={{ width: '272px', marginRight: '28px' }}
+      className="group relative flex-shrink-0 cursor-default"
+      style={{ width: '340px', marginRight: '6px' }}
     >
-      {/* Portrait — grayscale at rest, full colour + scale on hover */}
-      <div
-        className="relative overflow-hidden mb-4"
-        style={{ height: '352px', borderRadius: '2px' }}
-      >
+      {/* Full-bleed portrait — no radius, no border, no shadow */}
+      <div className="relative overflow-hidden" style={{ height: '450px' }}>
         <img
           src={card.photo}
           alt={card.founder}
           className="founder-card-photo w-full h-full object-cover"
           style={{ objectPosition: 'center top' }}
         />
-
-        {/* Gold inset border appears on hover */}
+        {/* Gold sweep line at bottom — slides in on hover */}
         <div
-          className="absolute inset-0 pointer-events-none border-[2px] border-transparent group-hover:border-[#F4B41A] transition-colors duration-400"
+          className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#F4B41A] origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out"
         />
-
-        {/* Bottom vignette */}
-        <div
-          className="absolute bottom-0 left-0 right-0 h-20 pointer-events-none"
-          style={{ background: 'linear-gradient(to top, rgba(11,13,16,0.42) 0%, transparent 100%)' }}
-        />
-
-        {/* Sector pill */}
-        <div className="absolute bottom-3 left-3">
-          <span
-            className="font-sans text-[8px] uppercase tracking-[0.26em] font-medium"
-            style={{ color: 'rgba(255,255,255,0.68)' }}
-          >
-            {card.sector}
-          </span>
-        </div>
       </div>
 
-      {/* Info row — name + company on left, logo on right */}
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
+      {/* Minimal text — sits directly on the page canvas */}
+      <div className="pt-4 pb-2">
+        <p
+          className="font-serif font-semibold leading-tight mb-1"
+          style={{ fontSize: '1.05rem', color: '#1A2540' }}
+        >
+          {card.founder}
+        </p>
+        <div className="flex items-center gap-2.5">
           <p
-            className="font-serif font-semibold leading-tight mb-1"
-            style={{ fontSize: '1.05rem', color: '#1A2540' }}
-          >
-            {card.founder}
-          </p>
-          <p
-            className="font-sans text-[10px] uppercase tracking-[0.20em] font-medium truncate"
-            style={{ color: 'rgba(11,13,16,0.40)' }}
+            className="font-sans text-[9.5px] uppercase tracking-[0.22em] font-medium"
+            style={{ color: 'rgba(11,13,16,0.38)' }}
           >
             {card.company}
           </p>
+          <img
+            src={card.logo}
+            alt=""
+            aria-hidden="true"
+            className="object-contain flex-shrink-0"
+            style={{ height: '18px', width: 'auto', maxWidth: '52px', mixBlendMode: 'multiply', opacity: 0.65 }}
+          />
         </div>
-        <img
-          src={card.logo}
-          alt={card.company + ' logo'}
-          className="flex-shrink-0 object-contain"
-          style={{
-            height: '28px',
-            width: 'auto',
-            maxWidth: '68px',
-            marginTop: '2px',
-            mixBlendMode: 'multiply',
-            opacity: 0.80,
-          }}
-        />
       </div>
     </div>
   );
@@ -699,16 +674,15 @@ const TICKER_CARDS = [
 ];
 
 function FounderTicker() {
-  // 4× repetition: marquee animates translateX(-50%) = 2 full sets → seamless loop
+  // 4× repetition: translateX(-50%) = 2 full sets = seamless loop
   const track = [...TICKER_CARDS, ...TICKER_CARDS, ...TICKER_CARDS, ...TICKER_CARDS];
 
   return (
-    <div
-      className="bg-[#F9F8F5] overflow-hidden border-t border-b border-[rgba(11,13,16,0.07)]"
-      style={{ paddingTop: '52px', paddingBottom: '52px' }}
-    >
-      {/* Eyebrow */}
-      <div className="flex items-center gap-4 px-6 md:px-14 xl:px-20 mb-10">
+    /* Transparent — photos sit directly on the off-white canvas */
+    <div className="overflow-hidden" style={{ borderTop: '1px solid rgba(11,13,16,0.07)' }}>
+
+      {/* Eyebrow — left-padded, same rhythm as other sections */}
+      <div className="flex items-center gap-4 px-6 md:px-14 xl:px-20 pt-10 pb-8">
         <span className="w-8 h-px bg-[#F4B41A]" />
         <span
           className="font-sans text-[10px] uppercase tracking-[0.32em]"
@@ -718,8 +692,8 @@ function FounderTicker() {
         </span>
       </div>
 
-      {/* Ticker — marquee-track drives the animation, hover pauses it */}
-      <div className="marquee-track flex">
+      {/* Ticker track — hover pauses via .marquee-track:hover in globals.css */}
+      <div className="marquee-track flex pb-12">
         {track.map((card, i) => (
           <FounderCard key={i} card={card} />
         ))}
