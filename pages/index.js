@@ -1300,27 +1300,27 @@ export default function Home() {
                       >
                         {cs.name}
                       </h3>
-                      <p className="font-sans text-[12px] italic leading-relaxed mb-5 text-[#0B0D10]/40 group-hover:text-white/45 transition-colors duration-500">
+                      <p className="font-sans text-[13.5px] italic leading-relaxed mb-5 text-[#0B0D10]/55 group-hover:text-white/60 transition-colors duration-500">
                         {cs.tagline}
                       </p>
-                      <p className="font-sans text-[9px] uppercase tracking-[0.22em] mb-3 text-[#F4B41A]">
+                      <p className="font-sans text-[9.5px] uppercase tracking-[0.22em] mb-3 text-[#F4B41A]">
                         The Situation
                       </p>
-                      <p className="font-sans font-light text-[14px] leading-[1.88] text-[#0B0D10]/70 group-hover:text-white/80 transition-colors duration-500">
+                      <p className="font-sans font-normal text-[15px] leading-[1.82] text-[#0B0D10]/80 group-hover:text-white/88 transition-colors duration-500">
                         {cs.situation}
                       </p>
                     </div>
 
                     {/* ── Col 3: Approach + outcome ── */}
                     <div>
-                      <p className="font-sans text-[9px] uppercase tracking-[0.22em] mb-4 text-[#F4B41A]">
+                      <p className="font-sans text-[9.5px] uppercase tracking-[0.22em] mb-4 text-[#F4B41A]">
                         Our Approach
                       </p>
-                      <ul className="space-y-2.5 mb-8">
+                      <ul className="space-y-3 mb-8">
                         {cs.approach.map((line, li) => (
                           <li
                             key={li}
-                            className="flex items-start gap-2.5 font-sans font-light text-[13.5px] leading-snug text-[#0B0D10]/70 group-hover:text-white/80 transition-colors duration-500"
+                            className="flex items-start gap-2.5 font-sans font-normal text-[15px] leading-snug text-[#0B0D10]/80 group-hover:text-white/88 transition-colors duration-500"
                           >
                             <span className="text-[#F4B41A] mt-[3px] flex-shrink-0 text-[10px] transition-transform duration-300 group-hover:translate-x-1.5">
                               →
@@ -1330,16 +1330,16 @@ export default function Home() {
                         ))}
                       </ul>
                       <div className="border-t border-[#0B0D10]/10 group-hover:border-white/[0.14] pt-6 transition-all duration-500 group-hover:pl-4">
-                        <p className="font-sans text-[9px] uppercase tracking-[0.22em] mb-1.5 text-[#F4B41A]/70 group-hover:text-[#F4B41A] transition-colors duration-500">
+                        <p className="font-sans text-[9.5px] uppercase tracking-[0.22em] mb-1.5 text-[#F4B41A]/80 group-hover:text-[#F4B41A] transition-colors duration-500">
                           Outcome
                         </p>
                         <p
-                          className="font-serif italic font-light leading-snug mb-1.5 text-[#0B0D10] group-hover:text-white transition-colors duration-500"
-                          style={{ fontSize: 'clamp(1rem, 1.3vw, 1.22rem)' }}
+                          className="font-serif italic font-normal leading-snug mb-2 text-[#0B0D10] group-hover:text-white transition-colors duration-500"
+                          style={{ fontSize: 'clamp(1.05rem, 1.4vw, 1.28rem)' }}
                         >
                           {cs.outcome}
                         </p>
-                        <p className="font-sans font-light text-[12.5px] leading-relaxed text-[#0B0D10]/60 group-hover:text-white/65 transition-colors duration-500">
+                        <p className="font-sans font-normal text-[14px] leading-relaxed text-[#0B0D10]/70 group-hover:text-white/75 transition-colors duration-500">
                           {cs.outcomeDetail}
                         </p>
                       </div>
