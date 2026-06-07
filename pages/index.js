@@ -955,18 +955,22 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ══ §5  CASE STUDIES — light navy ════════════════════════════ */}
+        {/* ══ §5  CASE STUDIES — interactive hover rows ════════════════ */}
         <section
           id="case-studies"
           ref={csRef}
-          className="scroll-mt-[64px] px-6 md:px-14 xl:px-20 py-28 border-t border-[rgba(11,13,16,0.08)] bg-[#F9F8F5]"
+          className="scroll-mt-[64px] px-6 md:px-14 xl:px-20 pt-24 pb-28 border-t border-[rgba(11,13,16,0.08)] bg-[#F9F8F5]"
         >
           <div className="max-w-[1440px] mx-auto">
 
-            <div className="mb-20 max-w-3xl">
+            {/* Section header */}
+            <div className="mb-16 max-w-3xl">
               <div className="flex items-center gap-4 mb-8">
                 <span className="w-8 h-px bg-[#F4B41A]" />
-                <span className="font-sans text-[10px] uppercase tracking-[0.3em]" style={{ color: 'rgba(11,13,16,0.38)' }}>
+                <span
+                  className="font-sans text-[10px] uppercase tracking-[0.3em]"
+                  style={{ color: 'rgba(11,13,16,0.38)' }}
+                >
                   Client Work
                 </span>
               </div>
@@ -985,30 +989,76 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="space-y-px">
-              {CASE_STUDIES.map((cs) => (
+            {/* Interactive case study rows */}
+            <div>
+              {[
+                {
+                  cs:  CASE_STUDIES[0],
+                  img: 'https://images.unsplash.com/photo-1548907040-4d42b3228b3a?auto=format&fit=crop&w=600&q=80',
+                },
+                {
+                  cs:  CASE_STUDIES[1],
+                  img: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=600&q=80',
+                },
+                {
+                  cs:  CASE_STUDIES[2],
+                  img: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80',
+                },
+              ].map(({ cs, img }) => (
                 <div
                   key={cs.index}
-                  className="border border-[rgba(11,13,16,0.10)]"
+                  className="group relative border-t border-black/[0.06] py-12 px-8 -mx-8 transition-all duration-500 ease-out hover:bg-white/60 hover:shadow-[0_20px_50px_rgba(30,35,66,0.06)]"
                 >
-                  <div className="p-8 md:p-12 grid md:grid-cols-[88px_1fr_1fr] gap-8 md:gap-14">
+                  {/* Sunward gold accent line — sweeps in from left on hover */}
+                  <div className="absolute top-0 left-0 right-0 h-[2px] bg-[#F4B41A] origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out pointer-events-none" />
 
-                    <div className="flex md:flex-col gap-4 md:gap-2">
-                      <span className="font-serif text-[#F4B41A] font-bold leading-none" style={{ fontSize: 'clamp(2rem, 3vw, 2.8rem)' }}>
+                  {/* Contextual image — absolute, emerges behind index numeral on desktop */}
+                  <div
+                    className="absolute top-10 left-8 w-0 h-36 overflow-hidden rounded-md opacity-0 scale-[0.92]
+                      group-hover:w-48 group-hover:opacity-100 group-hover:scale-100
+                      transition-all duration-500 ease-out pointer-events-none hidden md:block"
+                    style={{ zIndex: 0 }}
+                  >
+                    <img
+                      src={img}
+                      alt={cs.name}
+                      className="w-full h-full object-cover grayscale brightness-90 group-hover:grayscale-0 group-hover:brightness-100 transition-all duration-500"
+                    />
+                  </div>
+
+                  {/* Content grid — z-10 keeps text above the image */}
+                  <div className="relative z-10 grid grid-cols-1 md:grid-cols-[96px_1fr_1fr] gap-8 md:gap-14 lg:gap-20 items-start">
+
+                    {/* ── Col 1: Index numeral + sector tag ── */}
+                    <div className="flex items-center gap-4 md:flex-col md:items-start md:gap-2">
+                      <span
+                        className="font-serif text-[#F4B41A] font-bold leading-none"
+                        style={{ fontSize: 'clamp(2rem, 3vw, 2.8rem)' }}
+                      >
                         {cs.index}
                       </span>
-                      <span className="font-sans text-[9px] uppercase tracking-[0.25em] md:mt-1" style={{ color: 'rgba(11,13,16,0.38)' }}>
+                      <span
+                        className="font-sans text-[9px] uppercase tracking-[0.25em] md:mt-1"
+                        style={{ color: 'rgba(11,13,16,0.38)' }}
+                      >
                         {cs.sector}
                       </span>
                     </div>
 
+                    {/* ── Col 2: Brand name + tagline + situation ── */}
                     <div>
                       <h3
-                        className="font-serif font-semibold leading-snug mb-4 text-[#0B0D10]"
+                        className="font-serif font-semibold leading-snug mb-2 transition-colors duration-300 text-[#0B0D10] group-hover:text-[#080A10]"
                         style={{ fontSize: 'clamp(1.12rem, 1.6vw, 1.5rem)' }}
                       >
                         {cs.name}
                       </h3>
+                      <p
+                        className="font-sans text-[12px] italic leading-relaxed mb-5"
+                        style={{ color: 'rgba(11,13,16,0.42)' }}
+                      >
+                        {cs.tagline}
+                      </p>
                       <p className="font-sans text-[9px] uppercase tracking-[0.22em] mb-3 text-[#F4B41A]">
                         The Situation
                       </p>
@@ -1020,6 +1070,7 @@ export default function Home() {
                       </p>
                     </div>
 
+                    {/* ── Col 3: Approach list + outcome block ── */}
                     <div>
                       <p className="font-sans text-[9px] uppercase tracking-[0.22em] mb-4 text-[#F4B41A]">
                         Our Approach
@@ -1031,17 +1082,19 @@ export default function Home() {
                             className="flex items-start gap-2.5 font-sans font-light text-[13.5px] leading-snug"
                             style={{ color: 'rgba(11,13,16,0.70)' }}
                           >
-                            <span className="text-[#F4B41A] mt-[3px] flex-shrink-0 text-[10px]">→</span>
+                            <span className="text-[#F4B41A] mt-[3px] flex-shrink-0 text-[10px] transition-transform duration-300 group-hover:translate-x-1.5">
+                              →
+                            </span>
                             {line}
                           </li>
                         ))}
                       </ul>
-                      <div className="border-t pt-6 border-[rgba(11,13,16,0.10)]">
+                      <div className="border-t border-[rgba(11,13,16,0.10)] pt-6 transition-all duration-300 group-hover:pl-4">
                         <p className="font-sans text-[9px] uppercase tracking-[0.22em] text-[#F4B41A]/70 mb-1.5">
                           Outcome
                         </p>
                         <p
-                          className="font-serif italic font-light leading-snug mb-1 text-[#0B0D10]"
+                          className="font-serif italic font-light leading-snug mb-1.5 text-[#0B0D10]"
                           style={{ fontSize: 'clamp(1rem, 1.3vw, 1.22rem)' }}
                         >
                           {cs.outcome}
@@ -1059,6 +1112,7 @@ export default function Home() {
                 </div>
               ))}
             </div>
+
           </div>
         </section>
 
