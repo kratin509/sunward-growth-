@@ -1306,7 +1306,7 @@ export default function Home() {
                       <p className="font-sans text-[9.5px] uppercase tracking-[0.22em] mb-3 text-[#F4B41A]">
                         The Situation
                       </p>
-                      <p className="font-sans font-normal text-[15px] leading-[1.82] text-[#0B0D10]/80 group-hover:text-white/88 transition-colors duration-500">
+                      <p className="font-sans font-normal text-[15px] leading-[1.82] text-[#0B0D10]/80 group-hover:text-white/90 transition-colors duration-500">
                         {cs.situation}
                       </p>
                     </div>
@@ -1320,7 +1320,7 @@ export default function Home() {
                         {cs.approach.map((line, li) => (
                           <li
                             key={li}
-                            className="flex items-start gap-2.5 font-sans font-normal text-[15px] leading-snug text-[#0B0D10]/80 group-hover:text-white/88 transition-colors duration-500"
+                            className="flex items-start gap-2.5 font-sans font-normal text-[15px] leading-snug text-[#0B0D10]/80 group-hover:text-white/90 transition-colors duration-500"
                           >
                             <span className="text-[#F4B41A] mt-[3px] flex-shrink-0 text-[10px] transition-transform duration-300 group-hover:translate-x-1.5">
                               →
