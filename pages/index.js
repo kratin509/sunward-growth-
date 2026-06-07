@@ -69,7 +69,7 @@ function SunwardMark({ size = 36 }) {
 }
 
 /* ─────────────────────────────────────────────── HERO CANVAS 3D
-   Immersive 3D perspective shooting star system.
+   One-shot 3D perspective shooting star: bottom-left → top-right.
 
    Coordinate system (world space):
      +X = right,  -X = left  (offset from canvas centre)
@@ -81,20 +81,22 @@ function SunwardMark({ size = 36 }) {
      screenX = X * scale + W * 0.5
      screenY = Y * scale + H * 0.5
 
-   Animation lifecycle:
-     'launch'  star travels from Z=1650 (deep space, upper-right)
-               toward camera along a diagonal that crosses to lower-left.
-               40-point 3D trail projects to a tapering golden streak.
-               Proximity bloom intensifies as Z → 0 → massive flash.
-     'fade'    trail dissolves over ~50 frames with easing friction.
-     'pause'   ~80-frame dead air before next cycle.                     */
+   Animation lifecycle (one-shot, no loop):
+     'launch'  star travels from bottom-left deep space toward upper-right.
+               Projects from ~(10%, 85%) to ~(74%, 20%) of canvas.
+               40-point trail + proximity bloom + lens spikes on close pass.
+     'arrive'  30-frame cubic ease-in-out lerp to rest point (74%, 20%).
+               Flash bloom dissolves while gold 4-point star fades in.
+     'rest'    permanent pulsing 4-point gold star at upper-right. No reset. */
 function HeroCanvas3D() {
   const canvasRef = useRef(null);
   const rafRef    = useRef(null);
   const stateRef  = useRef({
-    phase: 'launch',
-    timer: 0,
-    star:  null,
+    phase:      'launch',
+    timer:      0,
+    star:       null,
+    arriveFrom: null,
+    restPos:    null,
   });
 
   useEffect(() => {
@@ -102,43 +104,58 @@ function HeroCanvas3D() {
     if (!canvas) return;
     const S = stateRef.current;
 
-    const FL = 440; // focal length — controls perspective intensity
+    const FL = 440;
 
-    /* ── Perspective projection helper ─────────────────────────── */
     function project(x3, y3, z3, W, H) {
       const dz = FL + z3;
-      if (dz < 1) return null;            // behind / at camera — skip
+      if (dz < 1) return null;
       const sc = FL / dz;
       return { x: x3 * sc + W * 0.5, y: y3 * sc + H * 0.5, sc };
     }
 
-    /* ── Star factory — proportional to canvas size ─────────────── */
+    /* ── Star spawns at bottom-left deep space, travels to upper-right ── */
     function mkStar(W, H) {
       return {
-        x:  W  * 0.23,     // 3D X offset: right of centre
-        y: -H  * 0.15,     // 3D Y offset: above centre
-        z:  1650,           // 3D Z: deep in space
-        vx: -W * 0.0092,   // moves left per frame
-        vy:  H * 0.0055,   // moves down per frame
-        vz: -35,            // Z approaches 0 (star nears camera)
-        trail: [],          // circular buffer of {x,y,z} world positions
+        x:  -W * 1.307,
+        y:   H * 1.144,
+        z:   1000,
+        vx:  W * 0.021,
+        vy: -H * 0.0192,
+        vz: -16,
+        trail: [],
       };
     }
 
-    /* ── Reset on window resize ─────────────────────────────────── */
+    /* ── 4-point star shape ─────────────────────────────────────────── */
+    function draw4Star(ctx, cx, cy, outerR, innerR, alpha) {
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.beginPath();
+      for (let i = 0; i < 8; i++) {
+        const angle = (i * Math.PI) / 4 - Math.PI / 2;
+        const r = i % 2 === 0 ? outerR : innerR;
+        if (i === 0) ctx.moveTo(Math.cos(angle) * r, Math.sin(angle) * r);
+        else         ctx.lineTo(Math.cos(angle) * r, Math.sin(angle) * r);
+      }
+      ctx.closePath();
+      ctx.fillStyle = `rgba(244,180,26,${alpha.toFixed(3)})`;
+      ctx.fill();
+      ctx.restore();
+    }
+
     const onResize = () => {
       const W = canvas.clientWidth, H = canvas.clientHeight;
       if (!W || !H) return;
-      S.star  = mkStar(W, H);
-      S.phase = 'launch';
-      S.timer = 0;
+      if (S.phase === 'launch') { S.star = mkStar(W, H); S.timer = 0; }
+      S.restPos = { x: W * 0.74, y: H * 0.20 };
     };
     window.addEventListener('resize', onResize, { passive: true });
 
-    /* ── Initialise ─────────────────────────────────────────────── */
-    S.star = mkStar(canvas.clientWidth || 960, canvas.clientHeight || 540);
+    const W0 = canvas.clientWidth || 960;
+    const H0 = canvas.clientHeight || 540;
+    S.star    = mkStar(W0, H0);
+    S.restPos = { x: W0 * 0.74, y: H0 * 0.20 };
 
-    /* ── Main RAF loop ──────────────────────────────────────────── */
     function loop() {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const W   = canvas.clientWidth;
@@ -150,7 +167,8 @@ function HeroCanvas3D() {
         canvas.width  = cW;
         canvas.height = cH;
       }
-      if (!S.star) S.star = mkStar(W, H);
+      if (!S.star)    S.star    = mkStar(W, H);
+      if (!S.restPos) S.restPos = { x: W * 0.74, y: H * 0.20 };
 
       const ctx = canvas.getContext('2d');
       ctx.save();
@@ -160,20 +178,18 @@ function HeroCanvas3D() {
 
       S.timer++;
       const st = S.star;
+      const rp = S.restPos;
 
       /* ══════════════════════════════════════ LAUNCH PHASE ══════ */
       if (S.phase === 'launch') {
 
-        /* Record current 3D position into trail */
         st.trail.push({ x: st.x, y: st.y, z: st.z });
         if (st.trail.length > 40) st.trail.shift();
 
-        /* Advance star through 3D space */
         st.x += st.vx;
         st.y += st.vy;
         st.z += st.vz;
 
-        /* Project current head position */
         const cur = project(st.x, st.y, st.z, W, H);
 
         if (cur) {
@@ -183,21 +199,18 @@ function HeroCanvas3D() {
             const pa = project(st.trail[i-1].x, st.trail[i-1].y, st.trail[i-1].z, W, H);
             const pb = project(st.trail[i].x,   st.trail[i].y,   st.trail[i].z,   W, H);
             if (!pa || !pb) continue;
-            const prog = i / tLen;          // 0 = tail, 1 = head
+            const prog = i / tLen;
             ctx.beginPath();
             ctx.moveTo(pa.x, pa.y);
             ctx.lineTo(pb.x, pb.y);
-            ctx.strokeStyle = `rgba(244,180,26,${(prog * 0.78).toFixed(3)})`;
-            ctx.lineWidth   = Math.max(0.4, 3.8 * pb.sc * prog);
+            ctx.strokeStyle = `rgba(244,180,26,${(prog * 0.85).toFixed(3)})`;
+            ctx.lineWidth   = Math.max(0.5, 5 * pb.sc * prog);
             ctx.stroke();
           }
 
-          /* ─── Proximity value: 0 at Z=700, peaks at Z=0 ────── */
-          /* Uses |Z| so the bloom stays strong as Z goes negative */
-          const prox = Math.pow(Math.max(0, 1 - Math.abs(st.z) / 700), 2.0);
-
-          /* ─── Wide outer halo ──────────────────────────────── */
-          const haloR = 7 * cur.sc + prox * 310;
+          /* ─── Proximity bloom ──────────────────────────────── */
+          const prox  = Math.pow(Math.max(0, 1 - Math.abs(st.z) / 700), 2.0);
+          const haloR = Math.max(20, 7 * cur.sc + prox * 310);
           const halo  = ctx.createRadialGradient(cur.x, cur.y, 0, cur.x, cur.y, haloR);
           halo.addColorStop(0,    `rgba(255,252,200,${(0.22 + prox * 0.78).toFixed(3)})`);
           halo.addColorStop(0.14, `rgba(255,215,65,${(0.18  + prox * 0.62).toFixed(3)})`);
@@ -206,24 +219,22 @@ function HeroCanvas3D() {
           halo.addColorStop(1,    'rgba(244,180,26,0)');
           ctx.fillStyle = halo;
           ctx.beginPath();
-          ctx.arc(cur.x, cur.y, Math.max(2, haloR), 0, Math.PI * 2);
+          ctx.arc(cur.x, cur.y, haloR, 0, Math.PI * 2);
           ctx.fill();
 
-          /* ─── Blinding white-hot core (activates at prox > 0.45) */
           if (prox > 0.45) {
             const coreR = 5 + prox * 48;
             const core  = ctx.createRadialGradient(cur.x, cur.y, 0, cur.x, cur.y, coreR);
-            core.addColorStop(0,   `rgba(255,255,255,${(prox * 0.96).toFixed(3)})`);
-            core.addColorStop(0.28,`rgba(255,244,160,${(prox * 0.88).toFixed(3)})`);
-            core.addColorStop(0.7, `rgba(244,180,26,${(prox * 0.40).toFixed(3)})`);
-            core.addColorStop(1,   'rgba(244,180,26,0)');
+            core.addColorStop(0,    `rgba(255,255,255,${(prox * 0.96).toFixed(3)})`);
+            core.addColorStop(0.28, `rgba(255,244,160,${(prox * 0.88).toFixed(3)})`);
+            core.addColorStop(0.7,  `rgba(244,180,26,${(prox * 0.40).toFixed(3)})`);
+            core.addColorStop(1,    'rgba(244,180,26,0)');
             ctx.fillStyle = core;
             ctx.beginPath();
             ctx.arc(cur.x, cur.y, coreR, 0, Math.PI * 2);
             ctx.fill();
           }
 
-          /* ─── 8-point lens spikes (activates at prox > 0.28) ── */
           if (prox > 0.28) {
             const spkLen = prox * 115;
             const spkAlp = prox * 0.56;
@@ -238,9 +249,9 @@ function HeroCanvas3D() {
                 cur.x, cur.y,
                 cur.x + dx * spkLen, cur.y + dy * spkLen
               );
-              g.addColorStop(0,   `rgba(255,255,200,${spkAlp.toFixed(3)})`);
-              g.addColorStop(0.38,`rgba(244,180,26,${(spkAlp * 0.5).toFixed(3)})`);
-              g.addColorStop(1,   'rgba(244,180,26,0)');
+              g.addColorStop(0,    `rgba(255,255,200,${spkAlp.toFixed(3)})`);
+              g.addColorStop(0.38, `rgba(244,180,26,${(spkAlp * 0.5).toFixed(3)})`);
+              g.addColorStop(1,    'rgba(244,180,26,0)');
               ctx.strokeStyle = g;
               ctx.lineWidth   = spkW;
               ctx.beginPath();
@@ -251,41 +262,61 @@ function HeroCanvas3D() {
           }
         }
 
-        /* Transition to fade once star passes well past camera plane */
-        if (st.z < -300) {
-          S.phase = 'fade';
+        /* Transition to arrive once star nears the camera plane */
+        if (st.z < -80) {
+          const last = project(st.x, st.y, st.z, W, H);
+          S.arriveFrom = last ? { x: last.x, y: last.y } : { x: rp.x, y: rp.y };
+          S.phase = 'arrive';
           S.timer = 0;
         }
 
-      /* ══════════════════════════════════════ FADE PHASE ════════ */
-      } else if (S.phase === 'fade') {
+      /* ══════════════════════════════════════ ARRIVE PHASE ═══════ */
+      } else if (S.phase === 'arrive') {
+        const FRAMES = 30;
+        const t    = Math.min(S.timer / FRAMES, 1);
+        const ease = t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3) / 2;
 
-        /* Smooth easing fade: fast decay at start, lingers at end */
-        const fadeA = Math.max(0, 1 - Math.pow(S.timer / 52, 0.65));
-        const tLen  = st.trail.length;
-        for (let i = 1; i < tLen; i++) {
-          const pa = project(st.trail[i-1].x, st.trail[i-1].y, st.trail[i-1].z, W, H);
-          const pb = project(st.trail[i].x,   st.trail[i].y,   st.trail[i].z,   W, H);
-          if (!pa || !pb) continue;
-          const prog = i / tLen;
+        const af = S.arriveFrom;
+        const cx = af.x + (rp.x - af.x) * ease;
+        const cy = af.y + (rp.y - af.y) * ease;
+
+        /* Flash bloom dissolves as we settle */
+        const flashA = 1 - ease;
+        if (flashA > 0.02) {
+          const flashR = 60 + flashA * 200;
+          const flash  = ctx.createRadialGradient(cx, cy, 0, cx, cy, flashR);
+          flash.addColorStop(0,   `rgba(255,252,200,${(flashA * 0.85).toFixed(3)})`);
+          flash.addColorStop(0.3, `rgba(244,180,26,${(flashA * 0.45).toFixed(3)})`);
+          flash.addColorStop(1,   'rgba(244,180,26,0)');
+          ctx.fillStyle = flash;
           ctx.beginPath();
-          ctx.moveTo(pa.x, pa.y);
-          ctx.lineTo(pb.x, pb.y);
-          ctx.strokeStyle = `rgba(244,180,26,${(prog * 0.78 * fadeA).toFixed(3)})`;
-          ctx.lineWidth   = Math.max(0.3, 3.8 * pb.sc * prog);
-          ctx.stroke();
+          ctx.arc(cx, cy, flashR, 0, Math.PI * 2);
+          ctx.fill();
         }
 
-        if (S.timer > 52) { S.phase = 'pause'; S.timer = 0; }
+        /* 4-point star fades in as we arrive */
+        draw4Star(ctx, cx, cy, 10 + ease * 4, 4 + ease * 2, ease * 0.9);
 
-      /* ══════════════════════════════════════ PAUSE PHASE ═══════ */
-      } else if (S.phase === 'pause') {
-        /* Canvas stays clear — star regenerates after ~80 frames */
-        if (S.timer > 80) {
-          S.star  = mkStar(W, H);
-          S.phase = 'launch';
-          S.timer = 0;
-        }
+        if (t >= 1) { S.phase = 'rest'; S.timer = 0; }
+
+      /* ══════════════════════════════════════ REST PHASE ═════════ */
+      } else if (S.phase === 'rest') {
+        const pulse  = 0.5 + 0.5 * Math.sin(S.timer * 0.04);
+        const outerR = 12 + pulse * 4;
+        const innerR = 5  + pulse * 1;
+        const alpha  = 0.65 + pulse * 0.25;
+
+        const glowR = 40 + pulse * 20;
+        const glow  = ctx.createRadialGradient(rp.x, rp.y, 0, rp.x, rp.y, glowR);
+        glow.addColorStop(0,   `rgba(244,180,26,${(0.18 + pulse * 0.12).toFixed(3)})`);
+        glow.addColorStop(0.5, `rgba(244,180,26,${(0.06 + pulse * 0.06).toFixed(3)})`);
+        glow.addColorStop(1,   'rgba(244,180,26,0)');
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(rp.x, rp.y, glowR, 0, Math.PI * 2);
+        ctx.fill();
+
+        draw4Star(ctx, rp.x, rp.y, outerR, innerR, alpha);
       }
 
       ctx.restore();
@@ -615,22 +646,23 @@ export default function Home() {
             {/* Full-span 3D canvas — absolute, pointer-events:none */}
             <HeroCanvas3D />
 
-            {/* Editorial text — left-anchored, Peak XV grid */}
-            <div className="relative z-10 w-full max-w-[1440px] mx-auto pl-12 md:pl-16 xl:pl-24 pr-8 pt-[64px]">
-              <div className="flex flex-col items-start text-left max-w-[340px] md:max-w-[44%] xl:max-w-[40%]">
+            {/* Editorial text — center-aligned, Peak XV scale */}
+            <div className="relative z-10 w-full max-w-[1440px] mx-auto px-8 md:px-14 xl:px-20 pt-[64px]">
+              <div className="flex flex-col items-center text-center mx-auto max-w-[320px] md:max-w-[700px]">
 
                 {/* Eyebrow */}
-                <div className="flex items-center gap-4 mb-9">
+                <div className="flex items-center justify-center gap-4 mb-9">
                   <span className="w-8 h-px bg-[#F4B41A]" />
                   <span className="font-sans text-[10px] uppercase tracking-[0.32em] text-[#0B0D10]/40">
                     Growth Advisory · Est. 2009
                   </span>
+                  <span className="w-8 h-px bg-[#F4B41A]" />
                 </div>
 
-                {/* Headline — crisp editorial scale, two lines */}
+                {/* Headline — large editorial scale */}
                 <h1
-                  className="font-serif text-[#0B0D10] leading-[1.10] tracking-[-0.020em] mb-7"
-                  style={{ fontSize: 'clamp(2.4rem, 3.5vw, 4.2rem)' }}
+                  className="font-serif text-[#0B0D10] leading-[1.08] tracking-[-0.025em] mb-7"
+                  style={{ fontSize: 'clamp(3.2rem, 5.5vw, 6.5rem)' }}
                 >
                   Your North Star for
                   <br />
@@ -639,8 +671,8 @@ export default function Home() {
 
                 {/* Tagline */}
                 <p
-                  className="font-sans font-light text-[#0B0D10]/48 tracking-[0.065em] mb-12 leading-relaxed max-w-sm md:max-w-none"
-                  style={{ fontSize: 'clamp(0.80rem, 0.95vw, 0.90rem)' }}
+                  className="font-sans font-light tracking-[0.065em] mb-12 leading-relaxed max-w-[28ch] md:max-w-none"
+                  style={{ fontSize: 'clamp(0.80rem, 1.0vw, 0.95rem)', color: 'rgba(11,13,16,0.52)' }}
                 >
                   Strategy{' '}
                   <span className="text-[#F4B41A] mx-1.5">•</span>
@@ -650,7 +682,7 @@ export default function Home() {
                 </p>
 
                 {/* CTA pair */}
-                <div className="flex flex-col sm:flex-row items-start gap-4">
+                <div className="flex flex-col sm:flex-row items-center gap-4">
                   <a
                     href="mailto:info@sunwardgrowth.com"
                     className="inline-flex items-center gap-2.5 bg-[#0B0D10] text-[#FAF9F6] font-sans text-[12px] font-medium tracking-[0.05em] px-7 py-[13px] rounded-sm hover:bg-[#F4B41A] hover:text-[#0B0D10] hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(244,180,26,0.30)] transition-all duration-300"
