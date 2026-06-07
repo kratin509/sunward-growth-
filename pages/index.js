@@ -69,9 +69,10 @@ function SunwardMark({ size = 36 }) {
 }
 
 /* ─────────────────────────────────────────────── HERO CANVAS
-   NorthStar Warp Engine v4 — 10 thin gold stars, multi-directional,
-   minimal-aesthetic. Each star picks one of four lane types so
-   trails cross the canvas from different angles.                    */
+   Two-phase star engine:
+   Phase 1 (intro) — 7 large stars sweep bottom-left → top-right,
+                     staggered, big & visible, ~4 s total.
+   Phase 2 (ambient) — 10 thin multi-directional stars loop forever. */
 function HeroCanvas3D() {
   const canvasRef = useRef(null);
   const rafRef    = useRef(null);
@@ -81,48 +82,78 @@ function HeroCanvas3D() {
     if (!canvas) return;
 
     const FL     = 480;
-    const POOL   = 10;
-    const TRAIL  = 20;
     const Z_FAR  = 800;
     const Z_KILL = -80;
 
-    const pool = [];
+    /* ── intro config ───────────────────────────────────────────── */
+    const INTRO_N       = 7;
+    const INTRO_STAGGER = 18;   // frames between each intro star launch
+    const INTRO_TRAIL   = 28;
+
+    /* ── ambient config ─────────────────────────────────────────── */
+    const AMB_N     = 10;
+    const AMB_TRAIL = 20;
+
+    let tick = 0;
+    let phase = 'intro';
+    const introStars = [];
+    const ambPool    = [];
+    let ambSeeded    = false;
     let W0 = 0, H0 = 0;
 
-    function makeStar(W, H, ageOffset) {
+    /* ── star factories ─────────────────────────────────────────── */
+    function makeIntroStar(W, H, spawnAt) {
+      const z  = Z_FAR * (0.18 + Math.random() * 0.48);
+      const s0 = FL / (FL + z);
+      const sF = FL / (FL + Z_KILL);
+      const spx = W * (0.00 + Math.random() * 0.22);
+      const spy = H * (0.65 + Math.random() * 0.35);
+      const epx = W * (0.72 + Math.random() * 0.28);
+      const epy = H * (-0.10 + Math.random() * 0.16);
+      const wx0 = (spx - W * 0.5) / s0;
+      const wy0 = (spy - H * 0.5) / s0;
+      const wxF = (epx - W * 0.5) / sF;
+      const wyF = (epy - H * 0.5) / sF;
+      const maxLife = 90 + Math.floor(Math.random() * 28);
+      return {
+        wx: wx0, wy: wy0, wz: z,
+        vx: (wxF - wx0) / maxLife,
+        vy: (wyF - wy0) / maxLife,
+        vz: (Z_KILL - z) / maxLife,
+        trail: [], life: maxLife, maxLife,
+        sz: 13 + Math.random() * 11,
+        hue: Math.random() < 0.55,
+        spawnAt, alive: false,
+      };
+    }
+
+    function makeAmbStar(W, H, ageOffset) {
       const z  = Z_FAR * (0.35 + Math.random() * 0.65);
       const s0 = FL / (FL + z);
       const sF = FL / (FL + Z_KILL);
-
-      // Four directional lanes
       const lane = Math.floor(Math.random() * 4);
       let spx, spy, epx, epy;
       if (lane === 0) {
-        // bottom-right → upper-left
         spx = W * (0.55 + Math.random() * 0.42);
         spy = H * (0.72 + Math.random() * 0.28);
         epx = W * (0.02 + Math.random() * 0.30);
         epy = H * (-0.08 + Math.random() * 0.14);
       } else if (lane === 1) {
-        // right edge → upper-left diagonal
         spx = W * (0.82 + Math.random() * 0.18);
         spy = H * (0.40 + Math.random() * 0.45);
         epx = W * (0.04 + Math.random() * 0.28);
         epy = H * (0.02 + Math.random() * 0.22);
       } else if (lane === 2) {
-        // bottom-center → upper-right
         spx = W * (0.28 + Math.random() * 0.36);
         spy = H * (0.78 + Math.random() * 0.22);
         epx = W * (0.58 + Math.random() * 0.32);
         epy = H * (-0.06 + Math.random() * 0.12);
       } else {
-        // bottom → upper-center (nearly vertical with slight drift)
         spx = W * (0.38 + Math.random() * 0.50);
         spy = H * (0.82 + Math.random() * 0.18);
         epx = W * (0.30 + Math.random() * 0.40);
         epy = H * (-0.06 + Math.random() * 0.10);
       }
-
       const wx0 = (spx - W * 0.5) / s0;
       const wy0 = (spy - H * 0.5) / s0;
       const wxF = (epx - W * 0.5) / sF;
@@ -142,17 +173,18 @@ function HeroCanvas3D() {
       };
     }
 
-    function draw4pt(ctx, cx, cy, R, alpha, hue) {
+    /* ── shared draw helpers ────────────────────────────────────── */
+    function draw4pt(ctx, cx, cy, R, alpha, hue, glowMult, glowAlpha) {
       if (R < 0.4) return;
       const r   = R * 0.26;
       const col = hue ? '244,180,26' : '234,179,8';
-      const gr  = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * 2.4);
-      gr.addColorStop(0,    `rgba(${col},${(alpha * 0.22).toFixed(3)})`);
-      gr.addColorStop(0.5,  `rgba(${col},${(alpha * 0.07).toFixed(3)})`);
-      gr.addColorStop(1,    `rgba(${col},0)`);
+      const gr  = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * glowMult);
+      gr.addColorStop(0,   `rgba(${col},${(alpha * glowAlpha).toFixed(3)})`);
+      gr.addColorStop(0.5, `rgba(${col},${(alpha * glowAlpha * 0.30).toFixed(3)})`);
+      gr.addColorStop(1,   `rgba(${col},0)`);
       ctx.fillStyle = gr;
       ctx.beginPath();
-      ctx.arc(cx, cy, R * 2.4, 0, Math.PI * 2);
+      ctx.arc(cx, cy, R * glowMult, 0, Math.PI * 2);
       ctx.fill();
       ctx.beginPath();
       for (let i = 0; i < 8; i++) {
@@ -163,10 +195,44 @@ function HeroCanvas3D() {
         if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
       }
       ctx.closePath();
-      ctx.fillStyle = `rgba(${col},${(alpha * 0.90).toFixed(3)})`;
+      ctx.fillStyle = `rgba(${col},${(alpha * 0.92).toFixed(3)})`;
       ctx.fill();
     }
 
+    function renderStar(ctx, s, isIntro) {
+      const tLen = s.trail.length;
+      if (tLen < 2) return;
+      const pct = s.life / s.maxLife;
+      const bri = pct > 0.92 ? (1 - pct) / 0.08
+                : pct > 0.12 ? 1.0
+                : pct / 0.12;
+      for (let t = 1; t < tLen; t++) {
+        const [ax, ay]      = s.trail[t - 1];
+        const [bx, by, bsc] = s.trail[t];
+        const p    = t / tLen;
+        const segA = isIntro
+          ? Math.pow(p, 1.4) * bri * 0.72
+          : Math.pow(p, 2.2) * bri * 0.52;
+        const col  = s.hue ? '244,180,26' : '234,179,8';
+        const gl   = ctx.createLinearGradient(ax, ay, bx, by);
+        gl.addColorStop(0, `rgba(${col},0)`);
+        gl.addColorStop(1, `rgba(${col},${Math.min(1, segA).toFixed(3)})`);
+        ctx.strokeStyle = gl;
+        ctx.lineWidth   = isIntro
+          ? Math.max(0.5, Math.pow(p, 0.58) * s.sz * bsc * 1.35)
+          : Math.max(0.2, Math.pow(p, 0.80) * s.sz * bsc * 0.80);
+        ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();
+      }
+      const [hx, hy, hsc] = s.trail[tLen - 1];
+      const headR = isIntro
+        ? Math.max(1.2, s.sz * hsc * 0.90)
+        : Math.max(0.5, s.sz * hsc * 0.75);
+      draw4pt(ctx, hx, hy, headR, bri, s.hue,
+        isIntro ? 3.2 : 2.4,
+        isIntro ? 0.30 : 0.22);
+    }
+
+    /* ── render loop ────────────────────────────────────────────── */
     function frame() {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const W   = canvas.clientWidth;
@@ -177,50 +243,63 @@ function HeroCanvas3D() {
       if (canvas.width !== cW || canvas.height !== cH) {
         canvas.width = cW; canvas.height = cH;
       }
-      if (pool.length === 0 || W !== W0 || H !== H0) {
-        pool.length = 0;
-        for (let i = 0; i < POOL; i++) pool.push(makeStar(W, H, Math.random()));
+
+      /* Reset on first valid frame or viewport resize */
+      if (W !== W0 || H !== H0) {
+        tick = 0; phase = 'intro'; ambSeeded = false;
+        introStars.length = 0; ambPool.length = 0;
+        for (let i = 0; i < INTRO_N; i++)
+          introStars.push(makeIntroStar(W, H, i * INTRO_STAGGER));
         W0 = W; H0 = H;
       }
+
       const ctx = canvas.getContext('2d');
       ctx.save();
       ctx.scale(dpr, dpr);
       ctx.clearRect(0, 0, W, H);
       ctx.lineCap  = 'round';
       ctx.lineJoin = 'round';
+      tick++;
 
-      for (let i = 0; i < pool.length; i++) {
-        const s  = pool[i];
-        const dz = FL + s.wz;
-        if (dz > 1) {
-          const sc = FL / dz;
-          s.trail.push([s.wx * sc + W * 0.5, s.wy * sc + H * 0.5, sc]);
-          if (s.trail.length > TRAIL) s.trail.shift();
+      if (phase === 'intro') {
+        let anyAlive = false;
+        for (const s of introStars) {
+          if (!s.alive && tick >= s.spawnAt) s.alive = true;
+          if (!s.alive) continue;
+          const dz = FL + s.wz;
+          if (dz > 1) {
+            const sc = FL / dz;
+            s.trail.push([s.wx * sc + W * 0.5, s.wy * sc + H * 0.5, sc]);
+            if (s.trail.length > INTRO_TRAIL) s.trail.shift();
+          }
+          s.wx += s.vx; s.wy += s.vy; s.wz += s.vz; s.life--;
+          if (s.life > 0 && s.wz > Z_KILL) {
+            anyAlive = true;
+            renderStar(ctx, s, true);
+          }
         }
-        s.wx += s.vx; s.wy += s.vy; s.wz += s.vz; s.life--;
-        if (s.life <= 0 || s.wz < Z_KILL) { pool[i] = makeStar(W, H, 0); continue; }
-        const pct = s.life / s.maxLife;
-        const bri = pct > 0.92 ? (1 - pct) / 0.08
-                  : pct > 0.12 ? 1.0
-                  : pct / 0.12;
-        const tLen = s.trail.length;
-        if (tLen < 2) continue;
-        for (let t = 1; t < tLen; t++) {
-          const [ax, ay]      = s.trail[t - 1];
-          const [bx, by, bsc] = s.trail[t];
-          const p    = t / tLen;
-          const segA = Math.pow(p, 2.2) * bri * 0.52;
-          const col  = s.hue ? '244,180,26' : '234,179,8';
-          const gl   = ctx.createLinearGradient(ax, ay, bx, by);
-          gl.addColorStop(0, `rgba(${col},0)`);
-          gl.addColorStop(1, `rgba(${col},${Math.min(1, segA).toFixed(3)})`);
-          ctx.strokeStyle = gl;
-          ctx.lineWidth   = Math.max(0.2, Math.pow(p, 0.8) * s.sz * bsc * 0.80);
-          ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();
+        /* Switch to ambient once all intro stars have launched and died */
+        if (tick > (INTRO_N - 1) * INTRO_STAGGER + 15 && !anyAlive) phase = 'ambient';
+
+      } else {
+        if (!ambSeeded) {
+          for (let i = 0; i < AMB_N; i++) ambPool.push(makeAmbStar(W, H, Math.random()));
+          ambSeeded = true;
         }
-        const [hx, hy, hsc] = s.trail[tLen - 1];
-        draw4pt(ctx, hx, hy, Math.max(0.5, s.sz * hsc * 0.75), bri, s.hue);
+        for (let i = 0; i < ambPool.length; i++) {
+          const s  = ambPool[i];
+          const dz = FL + s.wz;
+          if (dz > 1) {
+            const sc = FL / dz;
+            s.trail.push([s.wx * sc + W * 0.5, s.wy * sc + H * 0.5, sc]);
+            if (s.trail.length > AMB_TRAIL) s.trail.shift();
+          }
+          s.wx += s.vx; s.wy += s.vy; s.wz += s.vz; s.life--;
+          if (s.life <= 0 || s.wz < Z_KILL) { ambPool[i] = makeAmbStar(W, H, 0); continue; }
+          renderStar(ctx, s, false);
+        }
       }
+
       ctx.restore();
       rafRef.current = requestAnimationFrame(frame);
     }
