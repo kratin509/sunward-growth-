@@ -122,30 +122,46 @@ function HeroCanvas3D() {
         vy: (wyF - wy0) / maxLife,
         vz: (Z_KILL - z) / maxLife,
         trail: [], life: maxLife, maxLife,
-        sz: 16, hue: true,
+        sz: 22, hue: true,
       };
     }
 
-    function makeMainStar(W, H, spawnAt) {
+    function makeMainStar(W, H, spawnAt, lane) {
       const z  = Z_FAR * (0.22 + Math.random() * 0.38);
       const s0 = FL / (FL + z);
       const sF = FL / (FL + Z_KILL);
-      const spx = W * (0.01 + Math.random() * 0.16);
-      const spy = H * (0.70 + Math.random() * 0.28);
-      const epx = W * (0.65 + Math.random() * 0.28);
-      const epy = H * (-0.06 + Math.random() * 0.16);
+      let spx, spy, epx, epy;
+      if (lane === 0) {
+        // Bottom-left → top-right (mirrors preintro direction)
+        spx = W * (0.01 + Math.random() * 0.14);
+        spy = H * (0.72 + Math.random() * 0.24);
+        epx = W * (0.66 + Math.random() * 0.26);
+        epy = H * (-0.05 + Math.random() * 0.13);
+      } else if (lane === 1) {
+        // Bottom-right → top-left (counter-diagonal)
+        spx = W * (0.74 + Math.random() * 0.22);
+        spy = H * (0.70 + Math.random() * 0.28);
+        epx = W * (0.04 + Math.random() * 0.20);
+        epy = H * (-0.05 + Math.random() * 0.14);
+      } else {
+        // Bottom-center → top-center (near-vertical, slight rightward drift)
+        spx = W * (0.36 + Math.random() * 0.28);
+        spy = H * (0.78 + Math.random() * 0.20);
+        epx = W * (0.42 + Math.random() * 0.24);
+        epy = H * (-0.04 + Math.random() * 0.10);
+      }
       const wx0 = (spx - W * 0.5) / s0;
       const wy0 = (spy - H * 0.5) / s0;
       const wxF = (epx - W * 0.5) / sF;
       const wyF = (epy - H * 0.5) / sF;
-      const maxLife = 120 + Math.floor(Math.random() * 20);
+      const maxLife = 118 + Math.floor(Math.random() * 22);
       return {
         wx: wx0, wy: wy0, wz: z,
         vx: (wxF - wx0) / maxLife,
         vy: (wyF - wy0) / maxLife,
         vz: (Z_KILL - z) / maxLife,
         trail: [], life: maxLife, maxLife,
-        sz: 9 + Math.random() * 8,
+        sz: 11 + Math.random() * 7,
         hue: Math.random() < 0.55,
         spawnAt, alive: false,
       };
@@ -188,7 +204,7 @@ function HeroCanvas3D() {
         const [ax, ay]      = s.trail[t - 1];
         const [bx, by, bsc] = s.trail[t];
         const p    = t / tLen;
-        const segA = Math.pow(p, 1.5) * bri * 0.68;
+        const segA = Math.pow(p, 1.4) * bri * 0.76;
         const col  = s.hue ? '244,180,26' : '234,179,8';
         const gl   = ctx.createLinearGradient(ax, ay, bx, by);
         gl.addColorStop(0, `rgba(${col},0)`);
@@ -217,23 +233,34 @@ function HeroCanvas3D() {
       if (bp < 1) {
         for (let k = 0; k < 3; k++) {
           const rP = Math.max(0, (bp - k * 0.18) / (1 - k * 0.18));
-          const ringR = rP * 88;
-          const ringA = (1 - rP) * 0.36;
+          const ringR = rP * 130;
+          const ringA = (1 - rP) * 0.48;
           if (ringA > 0.005 && ringR > 0.5) {
             ctx.beginPath();
             ctx.arc(bx, by, ringR, 0, Math.PI * 2);
             ctx.strokeStyle = `rgba(244,180,26,${ringA.toFixed(3)})`;
-            ctx.lineWidth = 1.5 * (1 - rP);
+            ctx.lineWidth = 2.2 * (1 - rP);
             ctx.stroke();
           }
         }
       }
+      // Persistent radial glow behind the star
+      const glowR = 55 + (phase !== 'bloom' ? 12 * Math.sin(t * 0.055) : 0);
+      const ga = bp * (phase === 'bloom' ? 0.18 : 0.12 + 0.06 * Math.sin(t * 0.055));
+      if (ga > 0.005) {
+        const gr = ctx.createRadialGradient(bx, by, 0, bx, by, glowR);
+        gr.addColorStop(0,   `rgba(244,180,26,${ga.toFixed(3)})`);
+        gr.addColorStop(0.5, `rgba(244,180,26,${(ga * 0.35).toFixed(3)})`);
+        gr.addColorStop(1,   'rgba(244,180,26,0)');
+        ctx.fillStyle = gr;
+        ctx.beginPath(); ctx.arc(bx, by, glowR, 0, Math.PI * 2); ctx.fill();
+      }
       // 4-point star — grows in during bloom, pulses gently in coda
       const starP = Math.min(1, bp * 2.0);
-      const pulse = phase === 'bloom' ? 1.0 : 0.55 + 0.45 * Math.sin(t * 0.055);
-      const starR = (10 + pulse * 5) * starP;
-      const starA = Math.min(1, starP * 2.0) * (0.68 + pulse * 0.32);
-      if (starR > 0.4) draw4pt(ctx, bx, by, starR, starA, true, 3.6, 0.32);
+      const pulse = phase === 'bloom' ? 1.0 : 0.60 + 0.40 * Math.sin(t * 0.055);
+      const starR = (20 + pulse * 8) * starP;
+      const starA = Math.min(1, starP * 2.2) * (0.75 + pulse * 0.25);
+      if (starR > 0.4) draw4pt(ctx, bx, by, starR, starA, true, 4.5, 0.44);
     }
 
     /* ── render loop ────────────────────────────────────────────── */
@@ -278,7 +305,7 @@ function HeroCanvas3D() {
         if (bloomTick >= BLOOM_DUR) {
           phase = 'main'; mainTick = 0;
           for (let i = 0; i < MAIN_N; i++)
-            mainStars.push(makeMainStar(W, H, i * MAIN_LAG));
+            mainStars.push(makeMainStar(W, H, i * MAIN_LAG, i % 3));
         }
 
       } else if (phase === 'main') {
