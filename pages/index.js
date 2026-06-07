@@ -343,91 +343,76 @@ function HeroCanvas3D() {
 
 /* ─────────────────────────────────────────────── TEAM SECTION */
 function TeamSection() {
-  const sectionRef = useRef(null);
-  const trackARef  = useRef(null); // OUR  — drifts right on scroll
-  const trackBRef  = useRef(null); // TEAM — drifts left on scroll
-  const ticking    = useRef(false);
+  const [scrollOffset, setScrollOffset] = useState(0);
 
   useEffect(() => {
-    const section = sectionRef.current;
-    const trackA  = trackARef.current;
-    const trackB  = trackBRef.current;
-    if (!section || !trackA || !trackB) return;
-
-    const paint = () => {
-      const rect     = section.getBoundingClientRect();
-      const viewH    = window.innerHeight;
-      // progress 0 → section entering from bottom; 1 → section exiting at top
-      const raw      = (viewH - rect.top) / (viewH + rect.height);
-      const clamped  = Math.max(0, Math.min(1, raw));
-      const dx       = (clamped - 0.5) * 520; // ±260 px total travel
-      trackA.style.transform = `translateX(${dx}px)`;
-      trackB.style.transform = `translateX(${-dx}px)`;
-      ticking.current = false;
-    };
-
-    const onScroll = () => {
-      if (!ticking.current) {
-        ticking.current = true;
-        requestAnimationFrame(paint);
-      }
-    };
-
-    paint();
+    const onScroll = () => setScrollOffset(window.scrollY);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const trackStyle = {
+  const trackBase = {
     fontFamily: "'Plus Jakarta Sans', sans-serif",
-    fontSize: '15vw',
-    fontWeight: 800,
-    letterSpacing: '0.01em',
-    lineHeight: 1.05,
+    fontSize: '16vw',
+    fontWeight: 900,
+    letterSpacing: '-0.01em',
+    lineHeight: 1,
     color: 'transparent',
-    WebkitTextStroke: '1px rgba(11,13,16,0.07)',
+    WebkitTextStroke: '1px rgba(11,13,16,0.10)',
     whiteSpace: 'nowrap',
     userSelect: 'none',
     display: 'block',
+    willChange: 'transform',
   };
 
   return (
     <section
       id="team-band"
-      ref={sectionRef}
       className="scroll-mt-[64px] relative overflow-hidden"
       style={{
-        background: 'linear-gradient(180deg, #FDFBF7 0%, #EDE8DE 38%, #E8E1D4 55%, #FDFBF7 100%)',
+        background: 'linear-gradient(180deg, #FDFBF7 0%, #EFECE6 45%, #EAE5D8 55%, #FDFBF7 100%)',
       }}
     >
-      {/* ── Opposing kinetic tracks ── */}
+      {/* ── Opposing kinetic text tracks ── */}
       <div
         aria-hidden="true"
         className="absolute inset-0 overflow-hidden pointer-events-none select-none"
-        style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '1rem' }}
+        style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '0.5rem' }}
       >
-        <span ref={trackARef} style={{ ...trackStyle, willChange: 'transform' }}>
-          OUR&nbsp;&nbsp;&nbsp;&nbsp;OUR&nbsp;&nbsp;&nbsp;&nbsp;OUR&nbsp;&nbsp;&nbsp;&nbsp;OUR&nbsp;&nbsp;&nbsp;&nbsp;OUR&nbsp;&nbsp;&nbsp;&nbsp;OUR&nbsp;&nbsp;&nbsp;&nbsp;OUR&nbsp;&nbsp;&nbsp;&nbsp;OUR
+        {/* Track 1 — OUR — drifts RIGHT as scrollOffset increases */}
+        <span
+          style={{
+            ...trackBase,
+            transform: `translateX(${scrollOffset * 0.4}px)`,
+          }}
+        >
+          OUR&nbsp;&nbsp;&nbsp;OUR&nbsp;&nbsp;&nbsp;OUR&nbsp;&nbsp;&nbsp;OUR&nbsp;&nbsp;&nbsp;OUR&nbsp;&nbsp;&nbsp;OUR&nbsp;&nbsp;&nbsp;OUR&nbsp;&nbsp;&nbsp;OUR
         </span>
-        <span ref={trackBRef} style={{ ...trackStyle, willChange: 'transform' }}>
-          TEAM&nbsp;&nbsp;&nbsp;&nbsp;TEAM&nbsp;&nbsp;&nbsp;&nbsp;TEAM&nbsp;&nbsp;&nbsp;&nbsp;TEAM&nbsp;&nbsp;&nbsp;&nbsp;TEAM&nbsp;&nbsp;&nbsp;&nbsp;TEAM&nbsp;&nbsp;&nbsp;&nbsp;TEAM
+        {/* Track 2 — TEAM — drifts LEFT as scrollOffset increases */}
+        <span
+          style={{
+            ...trackBase,
+            transform: `translateX(${-scrollOffset * 0.4}px)`,
+          }}
+        >
+          TEAM&nbsp;&nbsp;&nbsp;TEAM&nbsp;&nbsp;&nbsp;TEAM&nbsp;&nbsp;&nbsp;TEAM&nbsp;&nbsp;&nbsp;TEAM&nbsp;&nbsp;&nbsp;TEAM&nbsp;&nbsp;&nbsp;TEAM
         </span>
       </div>
 
-      {/* ── Left / right edge fade to blend tracks into bg ── */}
+      {/* ── Left / right edge vignette so tracks dissolve into bg ── */}
       <div
         aria-hidden="true"
         className="absolute inset-0 pointer-events-none"
         style={{
           zIndex: 1,
           background:
-            'linear-gradient(to right, #FDFBF7 0%, transparent 7%, transparent 93%, #FDFBF7 100%)',
+            'linear-gradient(to right, #FDFBF7 0%, transparent 6%, transparent 94%, #FDFBF7 100%)',
         }}
       />
 
       <div className="relative z-10 px-6 md:px-14 xl:px-20 py-28">
 
-        {/* Section header */}
+        {/* ── Section header ── */}
         <div className="max-w-[1440px] mx-auto mb-16">
           <div className="flex items-center gap-4 mb-6">
             <span className="w-8 h-px" style={{ background: '#F4B41A' }} />
@@ -447,37 +432,41 @@ function TeamSection() {
           </h2>
         </div>
 
-        {/* ── Portrait tiles — centered, narrow, asymmetric stagger ── */}
-        <div className="flex flex-col sm:flex-row items-start justify-center gap-10 lg:gap-16 pb-8">
+        {/* ── Portrait grid — symmetric, top-aligned, equal heights via items-stretch ── */}
+        <div className="flex flex-col sm:flex-row items-stretch justify-center gap-8 lg:gap-12 pb-8">
 
-          {/* Card 1 — Baljeet Gujral */}
+          {/* ── Card 1 — Baljeet Gujral ── */}
           <div
             className="group cursor-default flex flex-col overflow-hidden transition-all duration-500 ease-out hover:-translate-y-2"
             style={{
-              width: '300px',
+              width: '310px',
               maxWidth: '88vw',
               borderRadius: '2px',
-              boxShadow: '0 2px 16px rgba(11,13,16,0.07), 0 10px 40px rgba(11,13,16,0.07)',
+              boxShadow: '0 2px 20px rgba(11,13,16,0.08), 0 12px 48px rgba(11,13,16,0.06)',
             }}
           >
-            <div className="relative overflow-hidden" style={{ aspectRatio: '3/4' }}>
+            {/* Portrait image — locked to 3/4 aspect */}
+            <div className="relative overflow-hidden flex-shrink-0" style={{ aspectRatio: '3/4' }}>
               <img
                 src="/baljeet-gujral.png"
                 alt="Baljeet Gujral"
                 className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
                 style={{ objectPosition: 'center 20%' }}
               />
+              {/* Gold sweep line on hover */}
               <div
                 className="absolute top-0 left-0 right-0 h-[2px] origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out"
                 style={{ background: '#F4B41A' }}
               />
+              {/* Bottom gradient vignette */}
               <div
                 className="absolute inset-0 pointer-events-none"
                 style={{
                   background:
-                    'linear-gradient(to top, rgba(11,13,16,0.84) 0%, rgba(11,13,16,0.26) 40%, transparent 64%)',
+                    'linear-gradient(to top, rgba(11,13,16,0.86) 0%, rgba(11,13,16,0.24) 38%, transparent 62%)',
                 }}
               />
+              {/* Name overlay */}
               <div className="absolute bottom-0 left-0 right-0 px-5 pb-5">
                 <span
                   className="font-sans text-[8px] uppercase tracking-[0.30em] font-semibold block mb-1.5"
@@ -485,46 +474,51 @@ function TeamSection() {
                 >
                   Founder &amp; Strategic Advisor
                 </span>
-                <h3 className="font-serif text-white font-semibold leading-tight" style={{ fontSize: '1.2rem' }}>
+                <h3
+                  className="font-serif text-white font-semibold leading-tight"
+                  style={{ fontSize: '1.2rem' }}
+                >
                   Baljeet Gujral
                 </h3>
               </div>
             </div>
 
+            {/* Bio panel — flex-1 so both cards stretch to identical height */}
             <div
-              className="px-5 py-5 flex flex-col gap-2.5 relative"
+              className="px-5 py-5 flex flex-col gap-2.5 relative flex-1"
               style={{ background: '#FFFFFF', borderTop: '1px solid rgba(11,13,16,0.06)' }}
             >
+              {/* Gold left accent bar on hover */}
               <span
                 className="absolute left-0 top-0 bottom-0 w-[2px] origin-top scale-y-0 group-hover:scale-y-100 transition-transform duration-500 ease-out"
                 style={{ background: '#F4B41A' }}
               />
               <p
                 className="font-sans text-[8px] uppercase tracking-[0.16em] font-medium"
-                style={{ color: 'rgba(11,13,16,0.32)' }}
+                style={{ color: 'rgba(11,13,16,0.30)' }}
               >
                 Harvard · Stanford · Oxford · IIM Calcutta
               </p>
               <p
-                className="font-sans text-[12.5px] font-light leading-[1.82]"
-                style={{ color: 'rgba(11,13,16,0.68)' }}
+                className="font-sans text-[12.5px] font-light leading-[1.84]"
+                style={{ color: 'rgba(11,13,16,0.66)' }}
               >
-                15+ years turning ambitious ideas into real businesses. Built and scaled ventures across sales, strategy, and operations — partnering with early-stage startups and companies scaling nationally. Founder of Enfield Riders and Bucket List Experiences.
+                15+ years turning ambitious ideas into real businesses. Built and scaled ventures across sales, strategy, and operations — partnering with early-stage startups and established companies scaling nationally. Founder of Enfield Riders and Bucket List Experiences.
               </p>
             </div>
           </div>
 
-          {/* Card 2 — Dr. Suraj Kumar — staggered down on sm+ */}
+          {/* ── Card 2 — Dr. Suraj Kumar ── */}
           <div
-            className="group cursor-default flex flex-col overflow-hidden transition-all duration-500 ease-out hover:-translate-y-2 sm:mt-16"
+            className="group cursor-default flex flex-col overflow-hidden transition-all duration-500 ease-out hover:-translate-y-2"
             style={{
-              width: '300px',
+              width: '310px',
               maxWidth: '88vw',
               borderRadius: '2px',
-              boxShadow: '0 2px 16px rgba(11,13,16,0.07), 0 10px 40px rgba(11,13,16,0.07)',
+              boxShadow: '0 2px 20px rgba(11,13,16,0.08), 0 12px 48px rgba(11,13,16,0.06)',
             }}
           >
-            <div className="relative overflow-hidden" style={{ aspectRatio: '3/4' }}>
+            <div className="relative overflow-hidden flex-shrink-0" style={{ aspectRatio: '3/4' }}>
               <img
                 src="/dr-suraj-kumar.jpg"
                 alt="Dr. Suraj Kumar"
@@ -539,7 +533,7 @@ function TeamSection() {
                 className="absolute inset-0 pointer-events-none"
                 style={{
                   background:
-                    'linear-gradient(to top, rgba(11,13,16,0.84) 0%, rgba(11,13,16,0.26) 40%, transparent 64%)',
+                    'linear-gradient(to top, rgba(11,13,16,0.86) 0%, rgba(11,13,16,0.24) 38%, transparent 62%)',
                 }}
               />
               <div className="absolute bottom-0 left-0 right-0 px-5 pb-5">
@@ -549,14 +543,17 @@ function TeamSection() {
                 >
                   PhD · Management · Research-Led Strategist
                 </span>
-                <h3 className="font-serif text-white font-semibold leading-tight" style={{ fontSize: '1.2rem' }}>
+                <h3
+                  className="font-serif text-white font-semibold leading-tight"
+                  style={{ fontSize: '1.2rem' }}
+                >
                   Dr. Suraj Kumar
                 </h3>
               </div>
             </div>
 
             <div
-              className="px-5 py-5 flex flex-col gap-2.5 relative"
+              className="px-5 py-5 flex flex-col gap-2.5 relative flex-1"
               style={{ background: '#FFFFFF', borderTop: '1px solid rgba(11,13,16,0.06)' }}
             >
               <span
@@ -565,15 +562,15 @@ function TeamSection() {
               />
               <p
                 className="font-sans text-[8px] uppercase tracking-[0.16em] font-medium"
-                style={{ color: 'rgba(11,13,16,0.32)' }}
+                style={{ color: 'rgba(11,13,16,0.30)' }}
               >
                 India's Top 100 Young Leaders · 200+ Organisations
               </p>
               <p
-                className="font-sans text-[12.5px] font-light leading-[1.82]"
-                style={{ color: 'rgba(11,13,16,0.68)' }}
+                className="font-sans text-[12.5px] font-light leading-[1.84]"
+                style={{ color: 'rgba(11,13,16,0.66)' }}
               >
-                Combines academic rigour with entrepreneurial execution. Expertise spanning Entrepreneurship, Marketing, Org Behavior, and Innovation. Founder of The Dehradun Street — with over 200+ organisations collaborated with.
+                Combines academic rigour with entrepreneurial execution. Expertise spanning Entrepreneurship, Marketing, Org Behavior, and Innovation. Founder of The Dehradun Street — with over 200+ organisations collaborated with. Named among India's Top 100 Young Leaders.
               </p>
             </div>
           </div>
