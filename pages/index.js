@@ -955,33 +955,31 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ══ §5  CASE STUDIES — scroll-triggered dark ═════════════════ */}
+        {/* ══ §5  CASE STUDIES — light navy ════════════════════════════ */}
         <section
           id="case-studies"
           ref={csRef}
-          className={`scroll-mt-[64px] px-6 md:px-14 xl:px-20 py-28 border-t border-[rgba(11,13,16,0.08)] transition-colors duration-700 ${
-            csDark ? 'bg-[#0B0D10]' : 'bg-[#F2F0EC]'
-          }`}
+          className="scroll-mt-[64px] px-6 md:px-14 xl:px-20 py-28 border-t border-[rgba(11,13,16,0.08)] bg-[#E8F0FA]"
         >
           <div className="max-w-[1440px] mx-auto">
 
             <div className="mb-20 max-w-3xl">
               <div className="flex items-center gap-4 mb-8">
                 <span className="w-8 h-px bg-[#F4B41A]" />
-                <span className={`font-sans text-[10px] uppercase tracking-[0.3em] transition-colors duration-700 ${csDark ? 'text-[#F4B41A]' : 'text-[#0B0D10]/38'}`}>
+                <span className="font-sans text-[10px] uppercase tracking-[0.3em]" style={{ color: 'rgba(11,13,16,0.38)' }}>
                   Client Work
                 </span>
               </div>
               <h2
-                className={`font-serif font-semibold leading-[1.1] tracking-[-0.022em] mb-5 transition-colors duration-700 ${csDark ? 'text-white' : 'text-[#0B0D10]'}`}
+                className="font-serif font-semibold leading-[1.1] tracking-[-0.022em] mb-5 text-[#0B0D10]"
                 style={{ fontSize: 'clamp(2rem, 4.5vw, 4.2rem)' }}
               >
                 What we've{' '}
                 <span className="italic font-light">built together.</span>
               </h2>
               <p
-                className={`font-sans font-light leading-relaxed tracking-[0.02em] transition-colors duration-700 ${csDark ? 'text-white/48' : 'text-[#0B0D10]/48'}`}
-                style={{ fontSize: 'clamp(0.92rem, 1.2vw, 1.04rem)' }}
+                className="font-sans font-light leading-relaxed tracking-[0.02em]"
+                style={{ fontSize: 'clamp(0.92rem, 1.2vw, 1.04rem)', color: 'rgba(11,13,16,0.52)' }}
               >
                 Each engagement starts with diagnosis. Every outcome is earned.
               </p>
@@ -991,7 +989,7 @@ export default function Home() {
               {CASE_STUDIES.map((cs) => (
                 <div
                   key={cs.index}
-                  className={`border transition-colors duration-700 ${csDark ? 'border-white/[0.09]' : 'border-[rgba(11,13,16,0.09)]'}`}
+                  className="border border-[rgba(11,13,16,0.10)]"
                 >
                   <div className="p-8 md:p-12 grid md:grid-cols-[88px_1fr_1fr] gap-8 md:gap-14">
 
@@ -999,14 +997,14 @@ export default function Home() {
                       <span className="font-serif text-[#F4B41A] font-bold leading-none" style={{ fontSize: 'clamp(2rem, 3vw, 2.8rem)' }}>
                         {cs.index}
                       </span>
-                      <span className={`font-sans text-[9px] uppercase tracking-[0.25em] md:mt-1 transition-colors duration-700 ${csDark ? 'text-white/28' : 'text-[#0B0D10]/30'}`}>
+                      <span className="font-sans text-[9px] uppercase tracking-[0.25em] md:mt-1" style={{ color: 'rgba(11,13,16,0.38)' }}>
                         {cs.sector}
                       </span>
                     </div>
 
                     <div>
                       <h3
-                        className={`font-serif font-semibold leading-snug mb-4 transition-colors duration-700 ${csDark ? 'text-white' : 'text-[#0B0D10]'}`}
+                        className="font-serif font-semibold leading-snug mb-4 text-[#0B0D10]"
                         style={{ fontSize: 'clamp(1.12rem, 1.6vw, 1.5rem)' }}
                       >
                         {cs.name}
@@ -1015,8 +1013,8 @@ export default function Home() {
                         The Situation
                       </p>
                       <p
-                        className="font-sans font-light text-[14px] leading-[1.88] transition-colors duration-700"
-                        style={{ color: csDark ? 'rgba(255,255,255,0.82)' : 'rgba(11,13,16,0.68)' }}
+                        className="font-sans font-light text-[14px] leading-[1.88]"
+                        style={{ color: 'rgba(11,13,16,0.68)' }}
                       >
                         {cs.situation}
                       </p>
@@ -1030,27 +1028,27 @@ export default function Home() {
                         {cs.approach.map((line, li) => (
                           <li
                             key={li}
-                            className="flex items-start gap-2.5 font-sans font-light text-[13.5px] leading-snug transition-colors duration-700"
-                            style={{ color: csDark ? 'rgba(255,255,255,0.85)' : 'rgba(11,13,16,0.70)' }}
+                            className="flex items-start gap-2.5 font-sans font-light text-[13.5px] leading-snug"
+                            style={{ color: 'rgba(11,13,16,0.70)' }}
                           >
                             <span className="text-[#F4B41A] mt-[3px] flex-shrink-0 text-[10px]">→</span>
                             {line}
                           </li>
                         ))}
                       </ul>
-                      <div className={`border-t pt-6 transition-colors duration-700 ${csDark ? 'border-white/[0.09]' : 'border-[rgba(11,13,16,0.09)]'}`}>
+                      <div className="border-t pt-6 border-[rgba(11,13,16,0.10)]">
                         <p className="font-sans text-[9px] uppercase tracking-[0.22em] text-[#F4B41A]/70 mb-1.5">
                           Outcome
                         </p>
                         <p
-                          className={`font-serif italic font-light leading-snug mb-1 transition-colors duration-700 ${csDark ? 'text-white' : 'text-[#0B0D10]'}`}
+                          className="font-serif italic font-light leading-snug mb-1 text-[#0B0D10]"
                           style={{ fontSize: 'clamp(1rem, 1.3vw, 1.22rem)' }}
                         >
                           {cs.outcome}
                         </p>
                         <p
-                          className="font-sans font-light text-[12.5px] leading-relaxed transition-colors duration-700"
-                          style={{ color: csDark ? 'rgba(255,255,255,0.68)' : 'rgba(11,13,16,0.58)' }}
+                          className="font-sans font-light text-[12.5px] leading-relaxed"
+                          style={{ color: 'rgba(11,13,16,0.58)' }}
                         >
                           {cs.outcomeDetail}
                         </p>
