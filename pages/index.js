@@ -68,26 +68,33 @@ function SunwardMark({ size = 36 }) {
   );
 }
 
-/* ─────────────────────────────────────────────── NORTH STAR CANVAS
-   "North Star Launch" — three-layer premium hero animation:
-   1. Pulsing 4-point gold cross-star in the upper-right quadrant
-   2. Stardust micro-particles that float around the star on mouse proximity
-   3. Scroll-triggered shooting star: bursts from star, shoots diagonally
-      down-right, leaves a vector trail that decays with scroll depth.
-   All state lives in a single ref object — zero React re-renders.        */
-function NorthStarCanvas() {
-  const canvasRef  = useRef(null);
-  const rafRef     = useRef(null);
-  const stateRef   = useRef({
-    t:       0,
-    scrollY: 0,
-    mouse:   { x: -999, y: -999 },
-    dust:    [],
-    shoot: {
-      active: false, triggered: false,
-      x: 0, y: 0, vx: 0, vy: 0,
-      life: 0, maxLife: 88, trail: [],
-    },
+/* ─────────────────────────────────────────────── HERO CANVAS 3D
+   Immersive 3D perspective shooting star system.
+
+   Coordinate system (world space):
+     +X = right,  -X = left  (offset from canvas centre)
+     +Y = down,   -Y = up    (offset from canvas centre, canvas-aligned)
+     +Z = away from camera,  −Z = past camera (behind viewer)
+
+   Perspective projection:
+     scale   = focalLength / (focalLength + Z)
+     screenX = X * scale + W * 0.5
+     screenY = Y * scale + H * 0.5
+
+   Animation lifecycle:
+     'launch'  star travels from Z=1650 (deep space, upper-right)
+               toward camera along a diagonal that crosses to lower-left.
+               40-point 3D trail projects to a tapering golden streak.
+               Proximity bloom intensifies as Z → 0 → massive flash.
+     'fade'    trail dissolves over ~50 frames with easing friction.
+     'pause'   ~80-frame dead air before next cycle.                     */
+function HeroCanvas3D() {
+  const canvasRef = useRef(null);
+  const rafRef    = useRef(null);
+  const stateRef  = useRef({
+    phase: 'launch',
+    timer: 0,
+    star:  null,
   });
 
   useEffect(() => {
@@ -95,183 +102,189 @@ function NorthStarCanvas() {
     if (!canvas) return;
     const S = stateRef.current;
 
-    /* ── Event listeners ─────────────────────────────────────── */
-    const onMouse = (e) => {
-      const r  = canvas.getBoundingClientRect();
-      S.mouse.x = e.clientX - r.left;
-      S.mouse.y = e.clientY - r.top;
-    };
+    const FL = 440; // focal length — controls perspective intensity
 
-    const onScroll = () => {
-      S.scrollY = window.scrollY;
-      if (!S.shoot.triggered && window.scrollY > 8) {
-        const W  = canvas.clientWidth;
-        const H  = canvas.clientHeight;
-        const sx = W * 0.72, sy = H * 0.27;
-        // 55° angle in canvas-space (y-down): cos=right, sin=down — diagonal launch
-        const rad = (55 * Math.PI) / 180;
-        const spd = Math.min(W, H) * 0.036;
-        S.shoot = {
-          active: true, triggered: true,
-          x: sx, y: sy,
-          vx: Math.cos(rad) * spd,
-          vy: Math.sin(rad) * spd,
-          life: 0, maxLife: 88, trail: [],
-        };
-      }
-    };
-
-    window.addEventListener('mousemove', onMouse, { passive: true });
-    window.addEventListener('scroll',    onScroll, { passive: true });
-
-    /* ── 4-point star geometry helper ───────────────────────── */
-    function draw4Star(ctx, sx, sy, armLen, pulse) {
-      const shortR = armLen * 0.13;
-
-      // Wide ambient halo
-      const halo = ctx.createRadialGradient(sx, sy, 0, sx, sy, armLen * 3.6);
-      halo.addColorStop(0,    `rgba(244,180,26,${(0.11 * pulse).toFixed(3)})`);
-      halo.addColorStop(0.45, `rgba(244,180,26,0.04)`);
-      halo.addColorStop(1,    'rgba(244,180,26,0)');
-      ctx.fillStyle = halo;
-      ctx.beginPath();
-      ctx.arc(sx, sy, armLen * 3.6, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Cardinal arms — N E S W kite diamonds
-      ctx.fillStyle = `rgba(244,180,26,${(0.30 * pulse).toFixed(3)})`;
-      for (const [dx, dy] of [[0,-1],[1,0],[0,1],[-1,0]]) {
-        const px = -dy * shortR, py = dx * shortR;
-        ctx.beginPath();
-        ctx.moveTo(sx + px,          sy + py);
-        ctx.lineTo(sx + dx * armLen, sy + dy * armLen);
-        ctx.lineTo(sx - px,          sy - py);
-        ctx.lineTo(sx,               sy);
-        ctx.closePath();
-        ctx.fill();
-      }
-
-      // Diagonal sub-arms — 45° offset, shorter and softer
-      const diagLen = armLen * 0.52, diagR = shortR * 0.62;
-      ctx.fillStyle = `rgba(244,180,26,${(0.14 * pulse).toFixed(3)})`;
-      for (const [rx, ry] of [[1,-1],[1,1],[-1,1],[-1,-1]]) {
-        const dx = rx / Math.SQRT2, dy = ry / Math.SQRT2;
-        const px = -dy * diagR,     py = dx * diagR;
-        ctx.beginPath();
-        ctx.moveTo(sx + px,           sy + py);
-        ctx.lineTo(sx + dx * diagLen, sy + dy * diagLen);
-        ctx.lineTo(sx - px,           sy - py);
-        ctx.lineTo(sx,                sy);
-        ctx.closePath();
-        ctx.fill();
-      }
-
-      // Bright core radial glow
-      const core = ctx.createRadialGradient(sx, sy, 0, sx, sy, 5 * pulse);
-      core.addColorStop(0,    `rgba(255,249,210,${(0.95 * pulse).toFixed(3)})`);
-      core.addColorStop(0.45, `rgba(244,180,26,${(0.65 * pulse).toFixed(3)})`);
-      core.addColorStop(1,    'rgba(244,180,26,0)');
-      ctx.fillStyle = core;
-      ctx.beginPath();
-      ctx.arc(sx, sy, 5 * pulse, 0, Math.PI * 2);
-      ctx.fill();
+    /* ── Perspective projection helper ─────────────────────────── */
+    function project(x3, y3, z3, W, H) {
+      const dz = FL + z3;
+      if (dz < 1) return null;            // behind / at camera — skip
+      const sc = FL / dz;
+      return { x: x3 * sc + W * 0.5, y: y3 * sc + H * 0.5, sc };
     }
 
-    /* ── Main requestAnimationFrame loop ─────────────────────── */
+    /* ── Star factory — proportional to canvas size ─────────────── */
+    function mkStar(W, H) {
+      return {
+        x:  W  * 0.23,     // 3D X offset: right of centre
+        y: -H  * 0.15,     // 3D Y offset: above centre
+        z:  1650,           // 3D Z: deep in space
+        vx: -W * 0.0092,   // moves left per frame
+        vy:  H * 0.0055,   // moves down per frame
+        vz: -35,            // Z approaches 0 (star nears camera)
+        trail: [],          // circular buffer of {x,y,z} world positions
+      };
+    }
+
+    /* ── Reset on window resize ─────────────────────────────────── */
+    const onResize = () => {
+      const W = canvas.clientWidth, H = canvas.clientHeight;
+      if (!W || !H) return;
+      S.star  = mkStar(W, H);
+      S.phase = 'launch';
+      S.timer = 0;
+    };
+    window.addEventListener('resize', onResize, { passive: true });
+
+    /* ── Initialise ─────────────────────────────────────────────── */
+    S.star = mkStar(canvas.clientWidth || 960, canvas.clientHeight || 540);
+
+    /* ── Main RAF loop ──────────────────────────────────────────── */
     function loop() {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const W   = canvas.clientWidth;
       const H   = canvas.clientHeight;
       if (!W || !H) { rafRef.current = requestAnimationFrame(loop); return; }
 
-      if (canvas.width  !== Math.round(W * dpr) ||
-          canvas.height !== Math.round(H * dpr)) {
-        canvas.width  = Math.round(W * dpr);
-        canvas.height = Math.round(H * dpr);
+      const cW = Math.round(W * dpr), cH = Math.round(H * dpr);
+      if (canvas.width !== cW || canvas.height !== cH) {
+        canvas.width  = cW;
+        canvas.height = cH;
       }
+      if (!S.star) S.star = mkStar(W, H);
 
       const ctx = canvas.getContext('2d');
       ctx.save();
       ctx.scale(dpr, dpr);
       ctx.clearRect(0, 0, W, H);
+      ctx.lineCap = 'round';
 
-      S.t += 0.014;
-      const pulse  = 0.88 + Math.sin(S.t * 1.1) * 0.12;
-      const isMob  = W < 768;
-      const sx     = W * 0.72;
-      const sy     = H * 0.27;
-      const armLen = (isMob ? 14 : 24) * pulse;
+      S.timer++;
+      const st = S.star;
 
-      /* Stardust — spawns when mouse within ~250px of star */
-      const mdx = S.mouse.x - sx, mdy = S.mouse.y - sy;
-      if (Math.sqrt(mdx * mdx + mdy * mdy) < 250 && Math.random() < 0.28) {
-        const a  = Math.random() * Math.PI * 2;
-        const sp = 0.2 + Math.random() * 0.5;
-        S.dust.push({
-          x:    sx + (Math.random() - 0.5) * 46,
-          y:    sy + (Math.random() - 0.5) * 46,
-          vx:   Math.cos(a) * sp,
-          vy:   Math.sin(a) * sp - 0.14,
-          life: 0.72 + Math.random() * 0.28,
-          r:    0.7  + Math.random() * 1.35,
-        });
-        if (S.dust.length > 55) S.dust.shift();
-      }
+      /* ══════════════════════════════════════ LAUNCH PHASE ══════ */
+      if (S.phase === 'launch') {
 
-      S.dust = S.dust.filter(p => p.life > 0.016);
-      for (const p of S.dust) {
-        p.x  += p.vx;
-        p.y  += p.vy;
-        p.vy += 0.007;
-        p.life *= 0.965;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(244,180,26,${(p.life * 0.42).toFixed(3)})`;
-        ctx.fill();
-      }
+        /* Record current 3D position into trail */
+        st.trail.push({ x: st.x, y: st.y, z: st.z });
+        if (st.trail.length > 40) st.trail.shift();
 
-      /* North Star */
-      draw4Star(ctx, sx, sy, armLen, pulse);
+        /* Advance star through 3D space */
+        st.x += st.vx;
+        st.y += st.vy;
+        st.z += st.vz;
 
-      /* Shooting star */
-      const sh = S.shoot;
-      if (sh.active) {
-        sh.trail.push({ x: sh.x, y: sh.y });
-        if (sh.trail.length > 48) sh.trail.shift();
+        /* Project current head position */
+        const cur = project(st.x, st.y, st.z, W, H);
 
-        // Trail line — opacity modulated by trail-position AND scroll depth
-        const scrollFade = Math.max(0, 1 - S.scrollY / 500);
-        if (sh.trail.length > 1) {
-          ctx.lineCap = 'round';
-          for (let i = 1; i < sh.trail.length; i++) {
-            const prog = i / sh.trail.length;
-            const a    = prog * 0.58 * scrollFade * (1 - (sh.life / sh.maxLife) * 0.55);
+        if (cur) {
+          /* ─── 40-point tapered trail ───────────────────────── */
+          const tLen = st.trail.length;
+          for (let i = 1; i < tLen; i++) {
+            const pa = project(st.trail[i-1].x, st.trail[i-1].y, st.trail[i-1].z, W, H);
+            const pb = project(st.trail[i].x,   st.trail[i].y,   st.trail[i].z,   W, H);
+            if (!pa || !pb) continue;
+            const prog = i / tLen;          // 0 = tail, 1 = head
             ctx.beginPath();
-            ctx.moveTo(sh.trail[i - 1].x, sh.trail[i - 1].y);
-            ctx.lineTo(sh.trail[i].x,     sh.trail[i].y);
-            ctx.strokeStyle = `rgba(244,180,26,${a.toFixed(3)})`;
-            ctx.lineWidth   = 0.55 + prog * 1.1;
+            ctx.moveTo(pa.x, pa.y);
+            ctx.lineTo(pb.x, pb.y);
+            ctx.strokeStyle = `rgba(244,180,26,${(prog * 0.78).toFixed(3)})`;
+            ctx.lineWidth   = Math.max(0.4, 3.8 * pb.sc * prog);
             ctx.stroke();
+          }
+
+          /* ─── Proximity value: 0 at Z=700, peaks at Z=0 ────── */
+          /* Uses |Z| so the bloom stays strong as Z goes negative */
+          const prox = Math.pow(Math.max(0, 1 - Math.abs(st.z) / 700), 2.0);
+
+          /* ─── Wide outer halo ──────────────────────────────── */
+          const haloR = 7 * cur.sc + prox * 310;
+          const halo  = ctx.createRadialGradient(cur.x, cur.y, 0, cur.x, cur.y, haloR);
+          halo.addColorStop(0,    `rgba(255,252,200,${(0.22 + prox * 0.78).toFixed(3)})`);
+          halo.addColorStop(0.14, `rgba(255,215,65,${(0.18  + prox * 0.62).toFixed(3)})`);
+          halo.addColorStop(0.42, `rgba(244,180,26,${(prox  * 0.52).toFixed(3)})`);
+          halo.addColorStop(0.78, `rgba(244,180,26,${(prox  * 0.16).toFixed(3)})`);
+          halo.addColorStop(1,    'rgba(244,180,26,0)');
+          ctx.fillStyle = halo;
+          ctx.beginPath();
+          ctx.arc(cur.x, cur.y, Math.max(2, haloR), 0, Math.PI * 2);
+          ctx.fill();
+
+          /* ─── Blinding white-hot core (activates at prox > 0.45) */
+          if (prox > 0.45) {
+            const coreR = 5 + prox * 48;
+            const core  = ctx.createRadialGradient(cur.x, cur.y, 0, cur.x, cur.y, coreR);
+            core.addColorStop(0,   `rgba(255,255,255,${(prox * 0.96).toFixed(3)})`);
+            core.addColorStop(0.28,`rgba(255,244,160,${(prox * 0.88).toFixed(3)})`);
+            core.addColorStop(0.7, `rgba(244,180,26,${(prox * 0.40).toFixed(3)})`);
+            core.addColorStop(1,   'rgba(244,180,26,0)');
+            ctx.fillStyle = core;
+            ctx.beginPath();
+            ctx.arc(cur.x, cur.y, coreR, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          /* ─── 8-point lens spikes (activates at prox > 0.28) ── */
+          if (prox > 0.28) {
+            const spkLen = prox * 115;
+            const spkAlp = prox * 0.56;
+            const spkW   = 0.7 + prox * 2.4;
+            const dirs   = [
+              [1,0],[-1,0],[0,1],[0,-1],
+              [ 0.7071, 0.7071],[-0.7071,-0.7071],
+              [ 0.7071,-0.7071],[-0.7071, 0.7071],
+            ];
+            for (const [dx, dy] of dirs) {
+              const g = ctx.createLinearGradient(
+                cur.x, cur.y,
+                cur.x + dx * spkLen, cur.y + dy * spkLen
+              );
+              g.addColorStop(0,   `rgba(255,255,200,${spkAlp.toFixed(3)})`);
+              g.addColorStop(0.38,`rgba(244,180,26,${(spkAlp * 0.5).toFixed(3)})`);
+              g.addColorStop(1,   'rgba(244,180,26,0)');
+              ctx.strokeStyle = g;
+              ctx.lineWidth   = spkW;
+              ctx.beginPath();
+              ctx.moveTo(cur.x, cur.y);
+              ctx.lineTo(cur.x + dx * spkLen, cur.y + dy * spkLen);
+              ctx.stroke();
+            }
           }
         }
 
-        // Lead glow dot
-        const ldFade = Math.max(0, 1 - sh.life / sh.maxLife) * scrollFade;
-        const lg = ctx.createRadialGradient(sh.x, sh.y, 0, sh.x, sh.y, 12);
-        lg.addColorStop(0,    `rgba(255,250,200,${(0.92 * ldFade).toFixed(3)})`);
-        lg.addColorStop(0.38, `rgba(244,180,26,${(0.58 * ldFade).toFixed(3)})`);
-        lg.addColorStop(1,    'rgba(244,180,26,0)');
-        ctx.fillStyle = lg;
-        ctx.beginPath();
-        ctx.arc(sh.x, sh.y, 12, 0, Math.PI * 2);
-        ctx.fill();
+        /* Transition to fade once star passes well past camera plane */
+        if (st.z < -300) {
+          S.phase = 'fade';
+          S.timer = 0;
+        }
 
-        sh.x  += sh.vx;  sh.y  += sh.vy;
-        sh.vx *= 0.958;  sh.vy *= 0.958;
-        sh.life++;
+      /* ══════════════════════════════════════ FADE PHASE ════════ */
+      } else if (S.phase === 'fade') {
 
-        if (sh.life >= sh.maxLife || sh.x > W + 60 || sh.y > H + 60 || sh.x < -60) {
-          sh.active = false;
+        /* Smooth easing fade: fast decay at start, lingers at end */
+        const fadeA = Math.max(0, 1 - Math.pow(S.timer / 52, 0.65));
+        const tLen  = st.trail.length;
+        for (let i = 1; i < tLen; i++) {
+          const pa = project(st.trail[i-1].x, st.trail[i-1].y, st.trail[i-1].z, W, H);
+          const pb = project(st.trail[i].x,   st.trail[i].y,   st.trail[i].z,   W, H);
+          if (!pa || !pb) continue;
+          const prog = i / tLen;
+          ctx.beginPath();
+          ctx.moveTo(pa.x, pa.y);
+          ctx.lineTo(pb.x, pb.y);
+          ctx.strokeStyle = `rgba(244,180,26,${(prog * 0.78 * fadeA).toFixed(3)})`;
+          ctx.lineWidth   = Math.max(0.3, 3.8 * pb.sc * prog);
+          ctx.stroke();
+        }
+
+        if (S.timer > 52) { S.phase = 'pause'; S.timer = 0; }
+
+      /* ══════════════════════════════════════ PAUSE PHASE ═══════ */
+      } else if (S.phase === 'pause') {
+        /* Canvas stays clear — star regenerates after ~80 frames */
+        if (S.timer > 80) {
+          S.star  = mkStar(W, H);
+          S.phase = 'launch';
+          S.timer = 0;
         }
       }
 
@@ -283,8 +296,7 @@ function NorthStarCanvas() {
 
     return () => {
       cancelAnimationFrame(rafRef.current);
-      window.removeEventListener('mousemove', onMouse);
-      window.removeEventListener('scroll',    onScroll);
+      window.removeEventListener('resize', onResize);
     };
   }, []);
 
@@ -594,26 +606,25 @@ export default function Home() {
 
       <main>
 
-        {/* ══ §2  HERO — strict 85 vh, North Star canvas system ═══════ */}
+        {/* ══ §2  HERO — strict 85 vh, 3D perspective canvas ══════════ */}
         <section className="relative bg-[#F2F0EC] overflow-hidden">
 
           {/* Hero body — strict 85 vh container */}
           <div className="relative h-[85vh] flex items-center overflow-hidden">
 
-            {/* Full-span North Star canvas — absolute, pointer-events:none */}
-            <NorthStarCanvas />
+            {/* Full-span 3D canvas — absolute, pointer-events:none */}
+            <HeroCanvas3D />
 
-            {/* Editorial text block — Peak XV proportions */}
-            <div className="relative z-10 w-full max-w-[1440px] mx-auto px-8 md:px-16 xl:px-24 pt-[64px]">
-              <div className="flex flex-col items-center md:items-start text-center md:text-left md:max-w-[44%] lg:max-w-[40%]">
+            {/* Editorial text — left-anchored, Peak XV grid */}
+            <div className="relative z-10 w-full max-w-[1440px] mx-auto pl-12 md:pl-16 xl:pl-24 pr-8 pt-[64px]">
+              <div className="flex flex-col items-start text-left max-w-[340px] md:max-w-[44%] xl:max-w-[40%]">
 
                 {/* Eyebrow */}
-                <div className="flex items-center justify-center md:justify-start gap-4 mb-9">
+                <div className="flex items-center gap-4 mb-9">
                   <span className="w-8 h-px bg-[#F4B41A]" />
                   <span className="font-sans text-[10px] uppercase tracking-[0.32em] text-[#0B0D10]/40">
                     Growth Advisory · Est. 2009
                   </span>
-                  <span className="w-8 h-px bg-[#F4B41A] md:hidden" />
                 </div>
 
                 {/* Headline — crisp editorial scale, two lines */}
@@ -639,7 +650,7 @@ export default function Home() {
                 </p>
 
                 {/* CTA pair */}
-                <div className="flex flex-col sm:flex-row items-center md:items-start gap-4">
+                <div className="flex flex-col sm:flex-row items-start gap-4">
                   <a
                     href="mailto:info@sunwardgrowth.com"
                     className="inline-flex items-center gap-2.5 bg-[#0B0D10] text-[#FAF9F6] font-sans text-[12px] font-medium tracking-[0.05em] px-7 py-[13px] rounded-sm hover:bg-[#F4B41A] hover:text-[#0B0D10] hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(244,180,26,0.30)] transition-all duration-300"
