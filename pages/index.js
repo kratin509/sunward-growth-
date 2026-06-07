@@ -382,20 +382,22 @@ function TeamSection() {
         className="absolute inset-0 overflow-hidden pointer-events-none select-none"
         style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '0.5rem' }}
       >
+        {/* OUR — rests on RIGHT when section centred, drifts further right on scroll */}
         <span
           style={{
             ...trackBase,
             color: 'rgba(26,37,64,0.13)',
-            transform: `translateX(calc(${-offset * 90}vw))`,
+            transform: `translateX(calc(20vw + ${offset * 50}vw))`,
           }}
         >
           OUR
         </span>
+        {/* TEAM — rests on LEFT when section centred, drifts further left on scroll */}
         <span
           style={{
             ...trackBase,
             color: 'rgba(26,37,64,0.13)',
-            transform: `translateX(calc(${offset * 90}vw))`,
+            transform: `translateX(calc(-20vw + ${-offset * 50}vw))`,
           }}
         >
           TEAM
