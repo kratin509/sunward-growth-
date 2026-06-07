@@ -396,20 +396,20 @@ function TeamSection() {
         className="absolute inset-0 overflow-hidden pointer-events-none select-none"
         style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '0.5rem' }}
       >
-        {/* OUR — slides RIGHT as section enters, LEFT as it exits */}
-        <span
-          style={{
-            ...trackBase,
-            transform: `translateX(calc(${offset * 90}vw))`,
-          }}
-        >
-          OUR
-        </span>
-        {/* TEAM — slides LEFT as section enters, RIGHT as it exits */}
+        {/* OUR — enters from RIGHT, converges to centre as section comes into view */}
         <span
           style={{
             ...trackBase,
             transform: `translateX(calc(${-offset * 90}vw))`,
+          }}
+        >
+          OUR
+        </span>
+        {/* TEAM — enters from LEFT, converges to centre as section comes into view */}
+        <span
+          style={{
+            ...trackBase,
+            transform: `translateX(calc(${offset * 90}vw))`,
           }}
         >
           TEAM
