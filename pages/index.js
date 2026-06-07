@@ -373,7 +373,7 @@ function TeamSection() {
       ref={sectionRef}
       className="scroll-mt-[64px] relative overflow-hidden"
       style={{
-        background: 'linear-gradient(180deg, #0B1629 0%, #1A2D4E 10%, rgba(26,37,64,0.18) 32%, #EFECE6 52%, #EAE5D8 65%, #FDFBF7 100%)',
+        background: 'linear-gradient(180deg, #0B1629 0%, #0F1E38 22%, #1A2D4E 38%, #C8C4B8 60%, #EAE5D8 75%, #FDFBF7 100%)',
       }}
     >
       {/* ── "OUR" / "TEAM" scroll-motion background text ── */}
