@@ -344,33 +344,48 @@ function HeroCanvas3D() {
 /* ─────────────────────────────────────────────── TEAM SECTION */
 function TeamSection() {
   const sectionRef = useRef(null);
-  const bgRef      = useRef(null);
+  const trackARef  = useRef(null); // OUR  — drifts right on scroll
+  const trackBRef  = useRef(null); // TEAM — drifts left on scroll
+  const ticking    = useRef(false);
 
   useEffect(() => {
     const section = sectionRef.current;
-    const bg      = bgRef.current;
-    if (!section || !bg) return;
+    const trackA  = trackARef.current;
+    const trackB  = trackBRef.current;
+    if (!section || !trackA || !trackB) return;
 
-    /* Use getBoundingClientRect so parallax is viewport-relative.
-       As the section scrolls up (rect.top goes negative), bg moves
-       downward relative to the section → slower apparent scroll = depth. */
-    const update = () => {
-      const top = section.getBoundingClientRect().top;
-      bg.style.transform = `translateY(${top * -0.20}px)`;
+    const paint = () => {
+      const rect     = section.getBoundingClientRect();
+      const viewH    = window.innerHeight;
+      // progress 0 → section entering from bottom; 1 → section exiting at top
+      const raw      = (viewH - rect.top) / (viewH + rect.height);
+      const clamped  = Math.max(0, Math.min(1, raw));
+      const dx       = (clamped - 0.5) * 520; // ±260 px total travel
+      trackA.style.transform = `translateX(${dx}px)`;
+      trackB.style.transform = `translateX(${-dx}px)`;
+      ticking.current = false;
     };
 
-    update();
-    window.addEventListener('scroll', update, { passive: true });
-    return () => window.removeEventListener('scroll', update);
+    const onScroll = () => {
+      if (!ticking.current) {
+        ticking.current = true;
+        requestAnimationFrame(paint);
+      }
+    };
+
+    paint();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const kinetic = {
-    fontSize: 'clamp(5rem, 22vw, 26rem)',
-    fontWeight: 900,
-    letterSpacing: '-0.04em',
-    lineHeight: 1,
+  const trackStyle = {
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
+    fontSize: '15vw',
+    fontWeight: 800,
+    letterSpacing: '0.01em',
+    lineHeight: 1.05,
     color: 'transparent',
-    WebkitTextStroke: '1px rgba(255,255,255,0.08)',
+    WebkitTextStroke: '1px rgba(11,13,16,0.07)',
     whiteSpace: 'nowrap',
     userSelect: 'none',
     display: 'block',
@@ -380,165 +395,183 @@ function TeamSection() {
     <section
       id="team-band"
       ref={sectionRef}
-      className="scroll-mt-[64px] relative overflow-hidden border-t border-white/[0.06]"
-      style={{ background: 'linear-gradient(155deg, #1A2540 0%, #0D1628 52%, #131D35 100%)' }}
+      className="scroll-mt-[64px] relative overflow-hidden"
+      style={{
+        background: 'linear-gradient(180deg, #FDFBF7 0%, #EDE8DE 38%, #E8E1D4 55%, #FDFBF7 100%)',
+      }}
     >
-      {/* Ambient gold radial glow */}
+      {/* ── Opposing kinetic tracks ── */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 overflow-hidden pointer-events-none select-none"
+        style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '1rem' }}
+      >
+        <span ref={trackARef} style={{ ...trackStyle, willChange: 'transform' }}>
+          OUR&nbsp;&nbsp;&nbsp;&nbsp;OUR&nbsp;&nbsp;&nbsp;&nbsp;OUR&nbsp;&nbsp;&nbsp;&nbsp;OUR&nbsp;&nbsp;&nbsp;&nbsp;OUR&nbsp;&nbsp;&nbsp;&nbsp;OUR&nbsp;&nbsp;&nbsp;&nbsp;OUR&nbsp;&nbsp;&nbsp;&nbsp;OUR
+        </span>
+        <span ref={trackBRef} style={{ ...trackStyle, willChange: 'transform' }}>
+          TEAM&nbsp;&nbsp;&nbsp;&nbsp;TEAM&nbsp;&nbsp;&nbsp;&nbsp;TEAM&nbsp;&nbsp;&nbsp;&nbsp;TEAM&nbsp;&nbsp;&nbsp;&nbsp;TEAM&nbsp;&nbsp;&nbsp;&nbsp;TEAM&nbsp;&nbsp;&nbsp;&nbsp;TEAM
+        </span>
+      </div>
+
+      {/* ── Left / right edge fade to blend tracks into bg ── */}
       <div
         aria-hidden="true"
         className="absolute inset-0 pointer-events-none"
         style={{
+          zIndex: 1,
           background:
-            'radial-gradient(ellipse 80% 55% at 50% 52%, rgba(244,180,26,0.055) 0%, transparent 68%)',
+            'linear-gradient(to right, #FDFBF7 0%, transparent 7%, transparent 93%, #FDFBF7 100%)',
         }}
       />
-
-      {/* Kinetic parallax text — "OUR" anchored top-left, "TEAM" bottom-right */}
-      <div
-        ref={bgRef}
-        aria-hidden="true"
-        className="absolute inset-0 flex flex-col justify-between pointer-events-none select-none will-change-transform"
-        style={{ padding: '1.5rem 0' }}
-      >
-        <span style={kinetic}>OUR</span>
-        <span style={{ ...kinetic, alignSelf: 'flex-end' }}>TEAM</span>
-      </div>
 
       <div className="relative z-10 px-6 md:px-14 xl:px-20 py-28">
 
         {/* Section header */}
-        <div className="max-w-[1440px] mx-auto mb-20">
+        <div className="max-w-[1440px] mx-auto mb-16">
           <div className="flex items-center gap-4 mb-6">
-            <span className="w-8 h-px bg-[#F4B41A]" />
+            <span className="w-8 h-px" style={{ background: '#F4B41A' }} />
             <span
               className="font-sans text-[10px] uppercase tracking-[0.3em]"
-              style={{ color: 'rgba(255,255,255,0.36)' }}
+              style={{ color: 'rgba(11,13,16,0.38)' }}
             >
               The Team
             </span>
           </div>
           <h2
-            className="font-serif font-semibold text-white leading-[1.08] tracking-[-0.022em]"
-            style={{ fontSize: 'clamp(2rem, 4.5vw, 4.2rem)' }}
+            className="font-serif font-semibold leading-[1.08] tracking-[-0.022em]"
+            style={{ fontSize: 'clamp(2rem, 4.5vw, 4.2rem)', color: '#1A2540' }}
           >
             The people behind{' '}
             <span className="italic font-light" style={{ color: '#F4B41A' }}>Sunward.</span>
           </h2>
         </div>
 
-        {/* Asymmetric profile grid */}
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-14 items-start pb-12">
+        {/* ── Portrait tiles — centered, narrow, asymmetric stagger ── */}
+        <div className="flex flex-col sm:flex-row items-start justify-center gap-10 lg:gap-16 pb-8">
 
-          {/* ── Card 1 — Baljeet Gujral ── */}
+          {/* Card 1 — Baljeet Gujral */}
           <div
-            className="group cursor-default overflow-hidden rounded-[2px] flex flex-col transition-all duration-500 ease-out hover:-translate-y-3 hover:shadow-[0_40px_80px_rgba(0,0,0,0.55)]"
-            style={{ boxShadow: '0 8px 40px rgba(0,0,0,0.38)' }}
+            className="group cursor-default flex flex-col overflow-hidden transition-all duration-500 ease-out hover:-translate-y-2"
+            style={{
+              width: '300px',
+              maxWidth: '88vw',
+              borderRadius: '2px',
+              boxShadow: '0 2px 16px rgba(11,13,16,0.07), 0 10px 40px rgba(11,13,16,0.07)',
+            }}
           >
             <div className="relative overflow-hidden" style={{ aspectRatio: '3/4' }}>
               <img
                 src="/baljeet-gujral.png"
                 alt="Baljeet Gujral"
-                className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.05]"
+                className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
                 style={{ objectPosition: 'center 20%' }}
               />
-              {/* Gold sweep */}
-              <div className="absolute top-0 left-0 right-0 h-[2px] bg-[#F4B41A] origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out" />
-              {/* Bottom vignette */}
+              <div
+                className="absolute top-0 left-0 right-0 h-[2px] origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out"
+                style={{ background: '#F4B41A' }}
+              />
               <div
                 className="absolute inset-0 pointer-events-none"
                 style={{
                   background:
-                    'linear-gradient(to top, #0D1628 0%, rgba(13,22,40,0.50) 38%, transparent 65%)',
+                    'linear-gradient(to top, rgba(11,13,16,0.84) 0%, rgba(11,13,16,0.26) 40%, transparent 64%)',
                 }}
               />
-              {/* Name on photo */}
-              <div className="absolute bottom-0 left-0 right-0 px-6 pb-7">
-                <span className="font-sans text-[#F4B41A] text-[8px] uppercase tracking-[0.32em] font-semibold block mb-2">
-                  Founder & Strategic Advisor
-                </span>
-                <h3
-                  className="font-serif text-white font-semibold leading-tight"
-                  style={{ fontSize: 'clamp(1.2rem, 2vw, 1.65rem)' }}
+              <div className="absolute bottom-0 left-0 right-0 px-5 pb-5">
+                <span
+                  className="font-sans text-[8px] uppercase tracking-[0.30em] font-semibold block mb-1.5"
+                  style={{ color: '#F4B41A' }}
                 >
+                  Founder &amp; Strategic Advisor
+                </span>
+                <h3 className="font-serif text-white font-semibold leading-tight" style={{ fontSize: '1.2rem' }}>
                   Baljeet Gujral
                 </h3>
               </div>
             </div>
 
-            {/* Text panel */}
             <div
-              className="px-6 py-6 flex flex-col gap-3 relative overflow-hidden"
-              style={{
-                background: 'rgba(10,16,30,0.97)',
-                borderTop: '1px solid rgba(255,255,255,0.07)',
-              }}
+              className="px-5 py-5 flex flex-col gap-2.5 relative"
+              style={{ background: '#FFFFFF', borderTop: '1px solid rgba(11,13,16,0.06)' }}
             >
-              <span className="absolute left-0 top-0 bottom-0 w-[3px] bg-[#F4B41A] origin-top scale-y-0 group-hover:scale-y-100 transition-transform duration-500 ease-out" />
+              <span
+                className="absolute left-0 top-0 bottom-0 w-[2px] origin-top scale-y-0 group-hover:scale-y-100 transition-transform duration-500 ease-out"
+                style={{ background: '#F4B41A' }}
+              />
               <p
-                className="font-sans text-[9px] uppercase tracking-[0.14em] font-light"
-                style={{ color: 'rgba(255,255,255,0.30)' }}
+                className="font-sans text-[8px] uppercase tracking-[0.16em] font-medium"
+                style={{ color: 'rgba(11,13,16,0.32)' }}
               >
-                Harvard  ·  Stanford  ·  Oxford  ·  IIM Calcutta
+                Harvard · Stanford · Oxford · IIM Calcutta
               </p>
               <p
-                className="font-sans text-[13.5px] font-light leading-[1.80]"
-                style={{ color: 'rgba(255,255,255,0.70)' }}
+                className="font-sans text-[12.5px] font-light leading-[1.82]"
+                style={{ color: 'rgba(11,13,16,0.68)' }}
               >
                 15+ years turning ambitious ideas into real businesses. Built and scaled ventures across sales, strategy, and operations — partnering with early-stage startups and companies scaling nationally. Founder of Enfield Riders and Bucket List Experiences.
               </p>
             </div>
           </div>
 
-          {/* ── Card 2 — Dr. Suraj Kumar — offset down on desktop ── */}
+          {/* Card 2 — Dr. Suraj Kumar — staggered down on sm+ */}
           <div
-            className="group cursor-default overflow-hidden rounded-[2px] flex flex-col transition-all duration-500 ease-out hover:-translate-y-3 hover:shadow-[0_40px_80px_rgba(0,0,0,0.55)] md:mt-20"
-            style={{ boxShadow: '0 8px 40px rgba(0,0,0,0.38)' }}
+            className="group cursor-default flex flex-col overflow-hidden transition-all duration-500 ease-out hover:-translate-y-2 sm:mt-16"
+            style={{
+              width: '300px',
+              maxWidth: '88vw',
+              borderRadius: '2px',
+              boxShadow: '0 2px 16px rgba(11,13,16,0.07), 0 10px 40px rgba(11,13,16,0.07)',
+            }}
           >
             <div className="relative overflow-hidden" style={{ aspectRatio: '3/4' }}>
               <img
                 src="/dr-suraj-kumar.jpg"
                 alt="Dr. Suraj Kumar"
-                className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.05]"
+                className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
                 style={{ objectPosition: 'center 15%' }}
               />
-              <div className="absolute top-0 left-0 right-0 h-[2px] bg-[#F4B41A] origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out" />
+              <div
+                className="absolute top-0 left-0 right-0 h-[2px] origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out"
+                style={{ background: '#F4B41A' }}
+              />
               <div
                 className="absolute inset-0 pointer-events-none"
                 style={{
                   background:
-                    'linear-gradient(to top, #0D1628 0%, rgba(13,22,40,0.50) 38%, transparent 65%)',
+                    'linear-gradient(to top, rgba(11,13,16,0.84) 0%, rgba(11,13,16,0.26) 40%, transparent 64%)',
                 }}
               />
-              <div className="absolute bottom-0 left-0 right-0 px-6 pb-7">
-                <span className="font-sans text-[#F4B41A] text-[8px] uppercase tracking-[0.32em] font-semibold block mb-2">
-                  PhD · Management  ·  Research-Led Strategist
-                </span>
-                <h3
-                  className="font-serif text-white font-semibold leading-tight"
-                  style={{ fontSize: 'clamp(1.2rem, 2vw, 1.65rem)' }}
+              <div className="absolute bottom-0 left-0 right-0 px-5 pb-5">
+                <span
+                  className="font-sans text-[8px] uppercase tracking-[0.30em] font-semibold block mb-1.5"
+                  style={{ color: '#F4B41A' }}
                 >
+                  PhD · Management · Research-Led Strategist
+                </span>
+                <h3 className="font-serif text-white font-semibold leading-tight" style={{ fontSize: '1.2rem' }}>
                   Dr. Suraj Kumar
                 </h3>
               </div>
             </div>
 
             <div
-              className="px-6 py-6 flex flex-col gap-3 relative overflow-hidden"
-              style={{
-                background: 'rgba(10,16,30,0.97)',
-                borderTop: '1px solid rgba(255,255,255,0.07)',
-              }}
+              className="px-5 py-5 flex flex-col gap-2.5 relative"
+              style={{ background: '#FFFFFF', borderTop: '1px solid rgba(11,13,16,0.06)' }}
             >
-              <span className="absolute left-0 top-0 bottom-0 w-[3px] bg-[#F4B41A] origin-top scale-y-0 group-hover:scale-y-100 transition-transform duration-500 ease-out" />
+              <span
+                className="absolute left-0 top-0 bottom-0 w-[2px] origin-top scale-y-0 group-hover:scale-y-100 transition-transform duration-500 ease-out"
+                style={{ background: '#F4B41A' }}
+              />
               <p
-                className="font-sans text-[9px] uppercase tracking-[0.14em] font-light"
-                style={{ color: 'rgba(255,255,255,0.30)' }}
+                className="font-sans text-[8px] uppercase tracking-[0.16em] font-medium"
+                style={{ color: 'rgba(11,13,16,0.32)' }}
               >
-                India's Top 100 Young Leaders  ·  200+ Organisations
+                India's Top 100 Young Leaders · 200+ Organisations
               </p>
               <p
-                className="font-sans text-[13.5px] font-light leading-[1.80]"
-                style={{ color: 'rgba(255,255,255,0.70)' }}
+                className="font-sans text-[12.5px] font-light leading-[1.82]"
+                style={{ color: 'rgba(11,13,16,0.68)' }}
               >
                 Combines academic rigour with entrepreneurial execution. Expertise spanning Entrepreneurship, Marketing, Org Behavior, and Innovation. Founder of The Dehradun Street — with over 200+ organisations collaborated with.
               </p>
