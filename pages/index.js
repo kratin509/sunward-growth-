@@ -1265,8 +1265,7 @@ export default function Home() {
         <section
           id="case-studies"
           ref={csRef}
-          className="scroll-mt-[64px] px-6 md:px-14 xl:px-20 pt-24 pb-28 border-t border-[rgba(11,13,16,0.08)]"
-          style={{ background: 'radial-gradient(ellipse 62% 55% at 22% 18%, rgba(244,180,26,0.13) 0%, transparent 65%), radial-gradient(ellipse 38% 30% at 5% 5%, rgba(244,150,10,0.09) 0%, transparent 70%), #F9F8F5' }}
+          className="scroll-mt-[64px] px-6 md:px-14 xl:px-20 pt-24 pb-28 border-t border-[rgba(11,13,16,0.08)] bg-[#F9F8F5]"
         >
           <div className="max-w-[1440px] mx-auto">
 
@@ -1283,7 +1282,7 @@ export default function Home() {
               </div>
               <h2
                 className="font-serif font-semibold leading-[1.1] tracking-[-0.022em] mb-5 text-[#0B0D10]"
-                style={{ fontSize: 'clamp(2rem, 4.5vw, 4.2rem)', textShadow: '0 0 60px rgba(244,180,26,0.32), 0 0 120px rgba(244,180,26,0.14)' }}
+                style={{ fontSize: 'clamp(2rem, 4.5vw, 4.2rem)' }}
               >
                 What we've{' '}
                 <span className="italic font-light">built together.</span>
