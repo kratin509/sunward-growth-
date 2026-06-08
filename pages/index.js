@@ -1395,7 +1395,7 @@ export default function Home() {
                 <span className="w-8 h-px bg-[#F4B41A]" />
                 <p
                   className="font-serif italic font-light leading-snug"
-                  style={{ fontSize: 'clamp(1.3rem, 2.5vw, 2.2rem)', color: 'rgba(255,255,255,0.72)' }}
+                  style={{ fontSize: 'clamp(1.3rem, 2.5vw, 2.2rem)', color: '#FFFFFF', textShadow: '0 1px 24px rgba(255,255,255,0.18)' }}
                 >
                   "Never build without direction."
                 </p>
