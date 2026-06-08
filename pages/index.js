@@ -851,34 +851,6 @@ const CASE_STUDIES = [
   },
 ];
 
-/* ─────────────────────────────────────────────── ROW OBSERVER */
-function RowObserver({ children, delay = 0 }) {
-  const ref = useRef(null);
-  const [visible, setVisible] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setVisible(true); obs.disconnect(); } },
-      { threshold: 0.12 }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
-  return (
-    <div
-      ref={ref}
-      style={{
-        opacity: visible ? 1 : 0,
-        transform: visible ? 'translateY(0)' : 'translateY(28px)',
-        transition: `opacity 0.7s ease-out ${delay}ms, transform 0.7s ease-out ${delay}ms`,
-      }}
-    >
-      {children}
-    </div>
-  );
-}
-
 /* ─────────────────────────────────────────────── PAGE */
 export default function Home() {
   const [navScrolled, setNavScrolled] = useState(false);
@@ -1289,11 +1261,11 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ══ §5  CASE STUDIES — cinematic dark section ════════════════ */}
+        {/* ══ §5  CASE STUDIES — dark-reveal hover rows ════════════════ */}
         <section
           id="case-studies"
           ref={csRef}
-          className="scroll-mt-[64px] px-6 md:px-14 xl:px-20 pt-24 pb-28 bg-[#0B1629]"
+          className="scroll-mt-[64px] px-6 md:px-14 xl:px-20 pt-24 pb-28 border-t border-[rgba(11,13,16,0.08)] bg-[#F9F8F5]"
         >
           <div className="max-w-[1440px] mx-auto">
 
@@ -1303,13 +1275,13 @@ export default function Home() {
                 <span className="w-8 h-px bg-[#F4B41A]" />
                 <span
                   className="font-sans text-[10px] uppercase tracking-[0.3em]"
-                  style={{ color: 'rgba(255,255,255,0.36)' }}
+                  style={{ color: 'rgba(11,13,16,0.38)' }}
                 >
                   Client Work
                 </span>
               </div>
               <h2
-                className="font-serif font-semibold leading-[1.1] tracking-[-0.022em] mb-5 text-white"
+                className="font-serif font-semibold leading-[1.1] tracking-[-0.022em] mb-5 text-[#0B0D10]"
                 style={{ fontSize: 'clamp(2rem, 4.5vw, 4.2rem)' }}
               >
                 What we've{' '}
@@ -1317,110 +1289,92 @@ export default function Home() {
               </h2>
               <p
                 className="font-sans font-light leading-relaxed tracking-[0.02em]"
-                style={{ fontSize: 'clamp(0.92rem, 1.2vw, 1.04rem)', color: 'rgba(255,255,255,0.46)' }}
+                style={{ fontSize: 'clamp(0.92rem, 1.2vw, 1.04rem)', color: 'rgba(11,13,16,0.52)' }}
               >
                 Each engagement starts with diagnosis. Every outcome is earned.
               </p>
             </div>
 
-            {/* Case study rows */}
+            {/* Case study rows — hover flips each row to dark navy */}
             <div>
-              {CASE_STUDIES.map((cs, rowIdx) => (
-                <RowObserver key={cs.index} delay={rowIdx * 120}>
-                  <div
-                    className="group relative border-t border-white/[0.07] hover:border-white/[0.14] py-12 px-8 -mx-8 rounded-sm transition-all duration-500 ease-out hover:bg-[#132040] hover:shadow-[0_24px_60px_rgba(0,0,0,0.35)]"
-                  >
-                    {/* Gold sweep line */}
-                    <div className="absolute top-0 left-0 right-0 h-[2px] bg-[#F4B41A] origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out pointer-events-none" />
-                    {/* Gold left bar */}
-                    <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-[#F4B41A] origin-top scale-y-0 group-hover:scale-y-100 transition-transform duration-500 ease-out pointer-events-none" />
+              {CASE_STUDIES.map((cs) => (
+                <div
+                  key={cs.index}
+                  className="group relative border-t border-black/[0.06] hover:border-white/[0.08] py-12 px-8 -mx-8 transition-all duration-500 ease-out hover:bg-[#1A2540] hover:shadow-[0_32px_64px_rgba(26,37,64,0.28)]"
+                >
+                  {/* Gold sweep line — origin-left, 500ms */}
+                  <div className="absolute top-0 left-0 right-0 h-[2px] bg-[#F4B41A] origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out pointer-events-none" />
 
-                    {/* Ghost watermark index */}
-                    <div
-                      aria-hidden="true"
-                      className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none select-none leading-none font-sans font-black"
-                      style={{
-                        fontSize: 'clamp(7rem, 16vw, 18rem)',
-                        color: 'transparent',
-                        WebkitTextStroke: '1px rgba(255,255,255,0.05)',
-                        letterSpacing: '-0.04em',
-                        lineHeight: 1,
-                      }}
-                    >
-                      {cs.index}
+                  <div className="grid grid-cols-1 md:grid-cols-[96px_1fr_1fr] gap-8 md:gap-14 lg:gap-20 items-start">
+
+                    {/* ── Col 1: Index + sector ── */}
+                    <div className="flex items-center gap-4 md:flex-col md:items-start md:gap-2">
+                      <span
+                        className="font-serif text-[#F4B41A] font-bold leading-none"
+                        style={{ fontSize: 'clamp(2rem, 3vw, 2.8rem)' }}
+                      >
+                        {cs.index}
+                      </span>
+                      <span className="font-sans text-[9px] uppercase tracking-[0.25em] md:mt-1 text-[#0B0D10]/40 group-hover:text-white/50 transition-colors duration-500">
+                        {cs.sector}
+                      </span>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-[96px_1fr_1fr] gap-8 md:gap-14 lg:gap-20 items-start relative">
+                    {/* ── Col 2: Brand name + tagline + situation ── */}
+                    <div>
+                      <h3
+                        className="font-serif font-semibold leading-snug mb-2 text-[#0B0D10] group-hover:text-white transition-colors duration-500"
+                        style={{ fontSize: 'clamp(1.12rem, 1.6vw, 1.5rem)' }}
+                      >
+                        {cs.name}
+                      </h3>
+                      <p className="font-sans text-[13.5px] italic leading-relaxed mb-5 text-[#0B0D10]/55 group-hover:text-white/60 transition-colors duration-500">
+                        {cs.tagline}
+                      </p>
+                      <p className="font-sans text-[13px] font-semibold uppercase tracking-[0.18em] mb-3 text-[#F4B41A]">
+                        The Situation
+                      </p>
+                      <p className="font-sans font-normal text-[15px] leading-[1.82] text-[#0B0D10]/80 group-hover:text-white/90 transition-colors duration-500">
+                        {cs.situation}
+                      </p>
+                    </div>
 
-                      {/* ── Col 1: Index + sector ── */}
-                      <div className="flex items-center gap-4 md:flex-col md:items-start md:gap-2">
-                        <span
-                          className="font-serif text-[#F4B41A] font-bold leading-none"
-                          style={{ fontSize: 'clamp(2rem, 3vw, 2.8rem)' }}
-                        >
-                          {cs.index}
-                        </span>
-                        <span className="font-sans text-[9px] uppercase tracking-[0.25em] md:mt-1 text-white/35 group-hover:text-white/55 transition-colors duration-500">
-                          {cs.sector}
-                        </span>
-                      </div>
-
-                      {/* ── Col 2: Brand name + tagline + situation ── */}
-                      <div>
-                        <h3
-                          className="font-serif font-semibold leading-snug mb-2 text-white/80 group-hover:text-white transition-colors duration-500"
-                          style={{ fontSize: 'clamp(1.12rem, 1.6vw, 1.5rem)' }}
-                        >
-                          {cs.name}
-                        </h3>
-                        <p className="font-sans text-[13.5px] italic leading-relaxed mb-5 text-white/45 group-hover:text-white/65 transition-colors duration-500">
-                          {cs.tagline}
-                        </p>
-                        <p className="font-sans text-[13px] font-semibold uppercase tracking-[0.18em] mb-3 text-[#F4B41A]">
-                          The Situation
-                        </p>
-                        <p className="font-sans font-normal text-[15px] leading-[1.82] text-white/65 group-hover:text-white/90 transition-colors duration-500">
-                          {cs.situation}
-                        </p>
-                      </div>
-
-                      {/* ── Col 3: Approach + outcome ── */}
-                      <div>
-                        <p className="font-sans text-[13px] font-semibold uppercase tracking-[0.18em] mb-4 text-[#F4B41A]">
-                          Our Approach
-                        </p>
-                        <ul className="space-y-3 mb-8">
-                          {cs.approach.map((line, li) => (
-                            <li
-                              key={li}
-                              className="flex items-start gap-2.5 font-sans font-normal text-[15px] leading-snug text-white/65 group-hover:text-white/90 transition-colors duration-500"
-                            >
-                              <span className="text-[#F4B41A] mt-[3px] flex-shrink-0 text-[10px] transition-transform duration-300 group-hover:translate-x-1.5">
-                                →
-                              </span>
-                              {line}
-                            </li>
-                          ))}
-                        </ul>
-                        <div className="border-t border-white/[0.08] group-hover:border-white/[0.18] pt-6 transition-all duration-500 group-hover:pl-4">
-                          <p className="font-sans text-[13px] font-semibold uppercase tracking-[0.18em] mb-2 text-[#F4B41A]/75 group-hover:text-[#F4B41A] transition-colors duration-500">
-                            Outcome
-                          </p>
-                          <p
-                            className="font-serif italic font-normal leading-snug mb-2 text-white/80 group-hover:text-white transition-colors duration-500"
-                            style={{ fontSize: 'clamp(1.05rem, 1.4vw, 1.28rem)' }}
+                    {/* ── Col 3: Approach + outcome ── */}
+                    <div>
+                      <p className="font-sans text-[13px] font-semibold uppercase tracking-[0.18em] mb-4 text-[#F4B41A]">
+                        Our Approach
+                      </p>
+                      <ul className="space-y-3 mb-8">
+                        {cs.approach.map((line, li) => (
+                          <li
+                            key={li}
+                            className="flex items-start gap-2.5 font-sans font-normal text-[15px] leading-snug text-[#0B0D10]/80 group-hover:text-white/90 transition-colors duration-500"
                           >
-                            {cs.outcome}
-                          </p>
-                          <p className="font-sans font-normal text-[14px] leading-relaxed text-white/55 group-hover:text-white/80 transition-colors duration-500">
-                            {cs.outcomeDetail}
-                          </p>
-                        </div>
+                            <span className="text-[#F4B41A] mt-[3px] flex-shrink-0 text-[10px] transition-transform duration-300 group-hover:translate-x-1.5">
+                              →
+                            </span>
+                            {line}
+                          </li>
+                        ))}
+                      </ul>
+                      <div className="border-t border-[#0B0D10]/10 group-hover:border-white/[0.14] pt-6 transition-all duration-500 group-hover:pl-4">
+                        <p className="font-sans text-[13px] font-semibold uppercase tracking-[0.18em] mb-2 text-[#F4B41A]/80 group-hover:text-[#F4B41A] transition-colors duration-500">
+                          Outcome
+                        </p>
+                        <p
+                          className="font-serif italic font-normal leading-snug mb-2 text-[#0B0D10] group-hover:text-white transition-colors duration-500"
+                          style={{ fontSize: 'clamp(1.05rem, 1.4vw, 1.28rem)' }}
+                        >
+                          {cs.outcome}
+                        </p>
+                        <p className="font-sans font-normal text-[14px] leading-relaxed text-[#0B0D10]/70 group-hover:text-white/75 transition-colors duration-500">
+                          {cs.outcomeDetail}
+                        </p>
                       </div>
-
                     </div>
+
                   </div>
-                </RowObserver>
+                </div>
               ))}
             </div>
 
