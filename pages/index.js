@@ -493,6 +493,20 @@ function TeamSection() {
               >
                 15+ years turning ambitious ideas into real businesses. Built and scaled ventures across sales, strategy, and operations — partnering with early-stage startups and established companies scaling nationally. Founder of Enfield Riders and Bucket List Experiences.
               </p>
+              <a
+                href="https://www.linkedin.com/in/baljeetgujral/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-auto pt-3 inline-flex items-center gap-2 font-sans text-[10px] font-semibold uppercase tracking-[0.16em] transition-colors duration-200"
+                style={{ color: 'rgba(11,13,16,0.36)' }}
+                onMouseEnter={e => e.currentTarget.style.color = '#F4B41A'}
+                onMouseLeave={e => e.currentTarget.style.color = 'rgba(11,13,16,0.36)'}
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                </svg>
+                LinkedIn
+              </a>
             </div>
           </div>
 
@@ -560,6 +574,20 @@ function TeamSection() {
               >
                 Combines academic rigour with entrepreneurial execution. Expertise spanning Entrepreneurship, Marketing, Org Behavior, and Innovation. Founder of The Dehradun Street — with over 200+ organisations collaborated with. Named among India's Top 100 Young Leaders.
               </p>
+              <a
+                href="https://www.linkedin.com/in/dr-suraj-kumar-phd-98867532/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-auto pt-3 inline-flex items-center gap-2 font-sans text-[10px] font-semibold uppercase tracking-[0.16em] transition-colors duration-200"
+                style={{ color: 'rgba(11,13,16,0.36)' }}
+                onMouseEnter={e => e.currentTarget.style.color = '#F4B41A'}
+                onMouseLeave={e => e.currentTarget.style.color = 'rgba(11,13,16,0.36)'}
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                </svg>
+                LinkedIn
+              </a>
             </div>
           </div>
 
@@ -852,6 +880,17 @@ export default function Home() {
         <meta property="og:description" content="Your North Star for Business Transformation." />
         <meta property="og:type" content="website" />
       </Head>
+
+      {/* ── Global grain texture overlay ─────────────────────────── */}
+      <div
+        aria-hidden="true"
+        className="fixed inset-0 z-[999] pointer-events-none select-none"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E")`,
+          opacity: 0.028,
+          mixBlendMode: 'multiply',
+        }}
+      />
 
       {/* ── Fixed left-margin rule + diamond node ─────────────────── */}
       <aside
