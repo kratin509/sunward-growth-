@@ -1042,7 +1042,9 @@ export default function Home() {
                 {/* CTA pair */}
                 <div className="flex flex-col sm:flex-row items-center gap-4">
                   <a
-                    href="mailto:info@sunwardgrowth.com"
+                    href="https://calendly.com/kratin326/new-meeting"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="inline-flex items-center gap-3 bg-[#0B0D10] text-[#FAF9F6] font-sans text-[14px] font-medium tracking-[0.05em] px-10 py-[17px] rounded-sm hover:bg-[#F4B41A] hover:text-[#0B0D10] hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(244,180,26,0.30)] transition-all duration-300"
                   >
                     Book a Free Discovery Call
