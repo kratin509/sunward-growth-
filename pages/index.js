@@ -357,8 +357,10 @@ function TeamSection() {
     fontWeight: 900,
     letterSpacing: '-0.02em',
     lineHeight: 1,
-    color: 'rgba(26,37,64,0.12)',
-    WebkitTextStroke: 'none',
+    color: '#1E2342',
+    WebkitTextStroke: '0',
+    textShadow: 'none',
+    opacity: 0.07,
     whiteSpace: 'nowrap',
     userSelect: 'none',
     display: 'block',
@@ -383,23 +385,10 @@ function TeamSection() {
         style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '0.5rem' }}
       >
         {/* OUR — rests on RIGHT when section centred, drifts further right on scroll */}
-        <span
-          style={{
-            ...trackBase,
-            color: 'rgba(26,37,64,0.18)',
-            transform: `translateX(calc(20vw + ${offset * 50}vw))`,
-          }}
-        >
+        <span style={{ ...trackBase, transform: `translateX(calc(20vw + ${offset * 50}vw))` }}>
           OUR
         </span>
-        {/* TEAM — rests on LEFT when section centred, drifts further left on scroll */}
-        <span
-          style={{
-            ...trackBase,
-            color: 'rgba(26,37,64,0.18)',
-            transform: `translateX(calc(-20vw + ${-offset * 50}vw))`,
-          }}
-        >
+        <span style={{ ...trackBase, transform: `translateX(calc(-20vw + ${-offset * 50}vw))` }}>
           TEAM
         </span>
       </div>
