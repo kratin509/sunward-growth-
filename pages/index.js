@@ -108,7 +108,7 @@ function HeroCanvas3D() {
       const spx = W * (0.04 + Math.random() * 0.08);
       const spy = H * (0.78 + Math.random() * 0.14);
       const epx = W * 0.74;   // fixed North Star landing X
-      const epy = H * 0.14;   // fixed North Star landing Y
+      const epy = H * 0.22;   // fixed North Star landing Y
       northX = epx; northY = epy;
       const wx0 = (spx - W * 0.5) / s0;
       const wy0 = (spy - H * 0.5) / s0;
