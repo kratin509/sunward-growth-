@@ -357,8 +357,9 @@ function TeamSection() {
     fontWeight: 900,
     letterSpacing: '-0.02em',
     lineHeight: 1,
-    color: 'rgba(26,37,64,0.12)',
-    WebkitTextStroke: 'none',
+    color: 'transparent',
+    WebkitTextStroke: '1px rgba(30,35,66,0.28)',
+    textShadow: 'none',
     whiteSpace: 'nowrap',
     userSelect: 'none',
     display: 'block',
@@ -386,7 +387,6 @@ function TeamSection() {
         <span
           style={{
             ...trackBase,
-            color: 'rgba(26,37,64,0.18)',
             transform: `translateX(calc(20vw + ${offset * 50}vw))`,
           }}
         >
@@ -396,7 +396,6 @@ function TeamSection() {
         <span
           style={{
             ...trackBase,
-            color: 'rgba(26,37,64,0.18)',
             transform: `translateX(calc(-20vw + ${-offset * 50}vw))`,
           }}
         >
