@@ -694,7 +694,7 @@ const PORTFOLIO = [
   {
     tag: 'PREMIUM F&B · CASE STUDY',
     name: 'Manam Chocolates',
-    logo: '/manam-chocolates-logo.png',
+    logo: '/manam-chocolates.jpeg',
     teaser: 'Running on craft, not a system — until we fixed that.',
     blurb: "Manam is India's finest bean-to-bar chocolate brand. We helped them build a structured sales system and a store-by-store retail expansion playbook — turning exceptional craft into a scalable business.",
     details: [
@@ -707,7 +707,7 @@ const PORTFOLIO = [
   {
     tag: 'WELLNESS · CASE STUDY',
     name: 'Mahati Wellness',
-    logo: '/mahati-logo.png',
+    logo: '/mahati-wellness.jpg',
     teaser: 'Spreading thin across segments with no clear path to traction.',
     blurb: 'Mahati Wellness is a holistic health platform spanning yoga, nutrition, and mental wellness. We sharpened their customer targeting and built a full go-to-market strategy that drove measurable segment growth within 90 days.',
     details: [
