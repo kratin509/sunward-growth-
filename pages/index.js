@@ -1266,7 +1266,7 @@ export default function Home() {
           id="case-studies"
           ref={csRef}
           className="scroll-mt-[64px] px-6 md:px-14 xl:px-20 pt-24 pb-28 border-t border-[rgba(11,13,16,0.08)]"
-          style={{ background: 'linear-gradient(160deg, #0d1e3a 0%, #1a2d4e 8%, rgba(26,45,78,0.12) 28%, #F9F8F5 52%, #F9F8F5 100%)' }}
+          style={{ background: 'radial-gradient(ellipse 55% 38% at 8% 4%, rgba(11,22,52,0.52) 0%, transparent 100%), radial-gradient(ellipse 35% 22% at 32% 2%, rgba(26,45,78,0.28) 0%, transparent 100%), #F9F8F5' }}
         >
           <div className="max-w-[1440px] mx-auto">
 
