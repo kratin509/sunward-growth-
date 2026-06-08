@@ -1055,10 +1055,10 @@ export default function Home() {
                   key={i}
                   className={`group relative min-h-[240px] md:min-h-[256px] overflow-hidden cursor-pointer transition-all duration-300 hover:z-10 ${
                     item.logo
-                      ? 'bg-[#F9F8F5] hover:scale-[1.02] hover:shadow-[0_20px_52px_rgba(11,13,16,0.13)]'
+                      ? 'bg-[#EDEAE3] hover:scale-[1.02] hover:shadow-[0_20px_52px_rgba(11,13,16,0.18)]'
                       : item.segment
-                        ? 'bg-[#0B0D10]'
-                        : 'bg-[#F9F8F5] hover:scale-[1.02] hover:shadow-[0_20px_52px_rgba(11,13,16,0.13)]'
+                        ? 'bg-[#0B1629]'
+                        : 'bg-[#EDEAE3] hover:scale-[1.02] hover:shadow-[0_20px_52px_rgba(11,13,16,0.18)]'
                   }`}
                 >
                   {/* Gold bottom sweep — on all cards */}
@@ -1066,20 +1066,22 @@ export default function Home() {
 
                   {item.logo ? (
                     <>
-                      {/* Logo card — default: centred logo on cream */}
+                      {/* Logo card — default: white tile centred on muted bg */}
                       <div className="absolute inset-0 flex flex-col items-center justify-center p-8 transition-all duration-[380ms] ease-out group-hover:opacity-0 group-hover:scale-[0.94]">
-                        <img
-                          src={item.logo}
-                          alt={item.name}
-                          className="max-h-[88px] max-w-[65%] object-contain"
-                        />
-                        <span className="mt-4 font-sans text-[8.5px] uppercase tracking-[0.26em] font-semibold text-[#0B0D10]/28">
+                        <div className="bg-white rounded-sm shadow-[0_2px_16px_rgba(11,13,16,0.10)] px-8 py-6 flex flex-col items-center">
+                          <img
+                            src={item.logo}
+                            alt={item.name}
+                            className="max-h-[72px] max-w-[160px] object-contain"
+                          />
+                        </div>
+                        <span className="mt-4 font-sans text-[8.5px] uppercase tracking-[0.26em] font-semibold text-[#0B0D10]/35">
                           {item.tag}
                         </span>
                       </div>
 
-                      {/* Logo card — hover: dark, logo top-left + blurb + READ MORE */}
-                      <div className="absolute inset-0 bg-[#0B0D10] p-7 md:p-8 flex flex-col justify-between opacity-0 translate-y-4 pointer-events-none transition-all duration-[380ms] ease-out group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto">
+                      {/* Logo card — hover: navy, logo top-left + blurb + READ MORE */}
+                      <div className="absolute inset-0 bg-[#0B1629] p-7 md:p-8 flex flex-col justify-between opacity-0 translate-y-4 pointer-events-none transition-all duration-[380ms] ease-out group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto">
                         <img
                           src={item.logo}
                           alt={item.name}
@@ -1153,7 +1155,7 @@ export default function Home() {
                         </div>
                       </div>
 
-                      <div className="absolute inset-0 bg-[#0B0D10] p-7 md:p-8 flex flex-col justify-between opacity-0 translate-y-5 pointer-events-none transition-all duration-[400ms] ease-out group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto">
+                      <div className="absolute inset-0 bg-[#0B1629] p-7 md:p-8 flex flex-col justify-between opacity-0 translate-y-5 pointer-events-none transition-all duration-[400ms] ease-out group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto">
                         <span className="font-sans text-[8.5px] uppercase tracking-[0.28em] font-semibold text-[#F4B41A]">
                           {item.tag}
                         </span>
