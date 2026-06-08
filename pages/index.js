@@ -1063,6 +1063,8 @@ export default function Home() {
                 >
                   {/* Gold bottom sweep — on all cards */}
                   <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#F4B41A] z-10 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out pointer-events-none" />
+                  {/* Gold left bar — on all cards (same as segment hover effect) */}
+                  <span className="absolute left-0 top-0 bottom-0 w-[3px] bg-[#F4B41A] origin-top scale-y-0 group-hover:scale-y-100 transition-transform duration-[380ms] ease-out z-10 pointer-events-none" />
 
                   {item.logo ? (
                     <>
